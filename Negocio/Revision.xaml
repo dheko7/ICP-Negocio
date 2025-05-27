@@ -1,0 +1,89 @@
+﻿<Window x:Class="ICP.Negocio.Revision"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Revisión de Recepciones"
+        Height="600" Width="800"
+        WindowStartupLocation="CenterScreen">
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <!-- Título -->
+            <RowDefinition Height="2*"/>
+            <!-- Recepciones -->
+            <RowDefinition Height="Auto"/>
+            <!-- Subtítulo líneas -->
+            <RowDefinition Height="2*"/>
+            <!-- Líneas -->
+            <RowDefinition Height="Auto"/>
+            <!-- Botones -->
+        </Grid.RowDefinitions>
+
+        <!-- 1. Título -->
+        <TextBlock Text="Recepciones Liberadas para Revisión"
+                   FontSize="16" FontWeight="Bold"
+                   Grid.Row="0" Margin="0,0,0,10"/>
+
+        <!-- 2. Grid de Recepciones -->
+        <DataGrid x:Name="dgRecepciones"
+                  Grid.Row="1"
+                  AutoGenerateColumns="False"
+                  CanUserAddRows="False"
+                  SelectionMode="Single"
+                  SelectionChanged="DgRecepciones_SelectionChanged">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Albarán"
+                                     Binding="{Binding ALBARAN}"
+                                     Width="120"/>
+                <DataGridTextColumn Header="Proveedor"
+                                     Binding="{Binding PROVEEDOR}"
+                                     Width="150"/>
+                <DataGridTextColumn Header="Fecha Creación"
+                                     Binding="{Binding F_CREACION, StringFormat={}{0:dd/MM/yyyy}}"
+                                     Width="120"/>
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <!-- 3. Subtítulo líneas -->
+        <TextBlock Text="Líneas Pendientes de Confirmación"
+                   FontSize="14" FontWeight="SemiBold"
+                   Grid.Row="2" Margin="0,10,0,5"/>
+
+        <!-- 4. Grid de Líneas -->
+        <DataGrid x:Name="dgLineas"
+                  Grid.Row="3"
+                  AutoGenerateColumns="False"
+                  CanUserAddRows="False">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Línea"
+                                     Binding="{Binding LINEA}"
+                                     Width="60"/>
+                <DataGridTextColumn Header="Referencia"
+                                     Binding="{Binding REFERENCIA}"
+                                     Width="150"/>
+                <DataGridTextColumn Header="Cant. Buena"
+                                     Binding="{Binding CANTIDAD_BUENA}"
+                                     Width="100"/>
+                <DataGridTextColumn Header="Nº Serie"
+                                     Binding="{Binding NUMERO_SERIE}"
+                                     Width="150"/>
+                <DataGridTextColumn Header="Ubicación"
+                                     Binding="{Binding UBICACION}"
+                                     Width="120"/>
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <!-- 5. Botones -->
+        <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
+            <Button x:Name="btnVolver"
+                    Content="Volver"
+                    Width="100"
+                    Margin="0,0,10,0"
+                    Click="BtnVolver_Click"/>
+            <Button x:Name="btnConfirmar"
+                    Content="Enviar a ICP (Confirmar)"
+                    Width="180"
+                    Padding="10,5"
+                    Click="BtnConfirmar_Click"/>
+        </StackPanel>
+    </Grid>
+</Window>

@@ -1,0 +1,309 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="packages\Microsoft.SourceLink.GitHub.8.0.0\build\Microsoft.SourceLink.GitHub.props" Condition="Exists('packages\Microsoft.SourceLink.GitHub.8.0.0\build\Microsoft.SourceLink.GitHub.props')" />
+  <Import Project="packages\Microsoft.SourceLink.Common.8.0.0\build\Microsoft.SourceLink.Common.props" Condition="Exists('packages\Microsoft.SourceLink.Common.8.0.0\build\Microsoft.SourceLink.Common.props')" />
+  <Import Project="packages\Microsoft.Build.Tasks.Git.8.0.0\build\Microsoft.Build.Tasks.Git.props" Condition="Exists('packages\Microsoft.Build.Tasks.Git.8.0.0\build\Microsoft.Build.Tasks.Git.props')" />
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{5E6CDF65-E3F6-4F1D-9AE5-7BB588F3923C}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <RootNamespace>ICP</RootNamespace>
+    <AssemblyName>ICP</AssemblyName>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <WarningLevel>4</WarningLevel>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <Deterministic>true</Deterministic>
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <HintPath>packages\EntityFramework.6.2.0\lib\net45\EntityFramework.dll</HintPath>
+    </Reference>
+    <Reference Include="EntityFramework.SqlServer, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <HintPath>packages\EntityFramework.6.2.0\lib\net45\EntityFramework.SqlServer.dll</HintPath>
+    </Reference>
+    <Reference Include="log4net, Version=1.2.10.1, Culture=neutral, PublicKeyToken=3653ecdd3238431b, processorArchitecture=MSIL">
+      <HintPath>packages\SMA.Tools4.Common.Core.4.6.0.2\lib\log4net.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Office.Interop.Excel, Version=11.0.0.0, Culture=neutral, PublicKeyToken=71e9bce111e9429c">
+      <HintPath>packages\SMA.Tools4.Client.Core.4.6.0.2\lib\Microsoft.Office.Interop.Excel.dll</HintPath>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </Reference>
+    <Reference Include="Microsoft.Office.Interop.Word, Version=11.0.0.0, Culture=neutral, PublicKeyToken=71e9bce111e9429c">
+      <HintPath>packages\SMA.Tools4.Client.Core.4.6.0.2\lib\Microsoft.Office.Interop.Word.dll</HintPath>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </Reference>
+    <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>packages\Newtonsoft.Json.13.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="SMA.Tools4.Client.Core, Version=4.4.21.0, Culture=neutral, PublicKeyToken=3653ecdd3238431b, processorArchitecture=MSIL">
+      <HintPath>packages\SMA.Tools4.Client.Core.4.6.0.2\lib\SMA.Tools4.Client.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="SMA.Tools4.Client.DataSource, Version=4.4.83.0, Culture=neutral, PublicKeyToken=3653ecdd3238431b, processorArchitecture=MSIL">
+      <HintPath>packages\SMA.Tools4.Client.DataSource.4.6.0.2\lib\SMA.Tools4.Client.DataSource.dll</HintPath>
+    </Reference>
+    <Reference Include="SMA.Tools4.Common.Core, Version=4.4.54.0, Culture=neutral, PublicKeyToken=3653ecdd3238431b, processorArchitecture=MSIL">
+      <HintPath>packages\SMA.Tools4.Common.Core.4.6.0.2\lib\SMA.Tools4.Common.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="SMA.Tools4.Common.DataSource, Version=4.4.48.0, Culture=neutral, PublicKeyToken=3653ecdd3238431b, processorArchitecture=MSIL">
+      <HintPath>packages\SMA.Tools4.Common.DataSource.4.6.0.2\lib\SMA.Tools4.Common.DataSource.dll</HintPath>
+    </Reference>
+    <Reference Include="SMA.Tools4.Server.Core.Service, Version=4.4.8.0, Culture=neutral, PublicKeyToken=3653ecdd3238431b, processorArchitecture=MSIL">
+      <HintPath>packages\SMA.Tools4.Server.Core.Service.4.6.0.2\lib\SMA.Tools4.Server.Core.Service.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Data.Entity" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.Security" />
+    <Reference Include="System.Xml" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xaml">
+      <RequiredTargetFramework>4.0</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="WindowsBase" />
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+  </ItemGroup>
+  <ItemGroup>
+    <ApplicationDefinition Include="App.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </ApplicationDefinition>
+    <Compile Include="App.xaml.cs">
+      <DependentUpon>App.xaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="BBDD\BdsaidModel.Context.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>BdsaidModel.Context.tt</DependentUpon>
+    </Compile>
+    <Compile Include="BBDD\BdsaidModel.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>BdsaidModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="BBDD\BdsaidModel.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>BdsaidModel.edmx</DependentUpon>
+    </Compile>
+    <Compile Include="BBDD\DBConnection.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="BBDD\FN_OBTENER_SIGUIENTE_PICADA_Result.cs">
+      <DependentUpon>BdsaidModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="BBDD\NSERIES_RECEPCIONES.cs">
+      <DependentUpon>BdsaidModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="BBDD\NSERIES_SEGUIMIENTO.cs">
+      <DependentUpon>BdsaidModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="BBDD\ORDEN_SALIDA_CAB.cs">
+      <DependentUpon>BdsaidModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="BBDD\ORDEN_SALIDA_LIN.cs">
+      <DependentUpon>BdsaidModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="BBDD\PALET.cs">
+      <DependentUpon>BdsaidModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="BBDD\PICKING_LOG.cs">
+      <DependentUpon>BdsaidModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="BBDD\RECEPCIONES_CAB.cs">
+      <DependentUpon>BdsaidModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="BBDD\RECEPCIONES_LIN.cs">
+      <DependentUpon>BdsaidModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="BBDD\REFERENCIA.cs">
+      <DependentUpon>BdsaidModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="BBDD\sp_helpdiagramdefinition_Result.cs">
+      <DependentUpon>BdsaidModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="BBDD\sp_helpdiagrams_Result.cs">
+      <DependentUpon>BdsaidModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="BBDD\sysdiagram.cs">
+      <DependentUpon>BdsaidModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="BBDD\UBICACIONE.cs">
+      <DependentUpon>BdsaidModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="BBDD\USUARIO.cs">
+      <DependentUpon>BdsaidModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="BBDD\VW_REFERENCIAS_STOCK.cs">
+      <DependentUpon>BdsaidModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="BBDD\VW_STOCK_DISPONIBLE.cs">
+      <DependentUpon>BdsaidModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="BBDD\V_DETALLE_ALMACENAMIENTO_TABLAS.cs">
+      <DependentUpon>BdsaidModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="BBDD\V_DETALLE_FOREIGN_KEYS.cs">
+      <DependentUpon>BdsaidModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="BBDD\V_GRANT.cs">
+      <DependentUpon>BdsaidModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="BBDD\V_SQL.cs">
+      <DependentUpon>BdsaidModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="BBDD\V_SQL_CAMPOS_TABLA.cs">
+      <DependentUpon>BdsaidModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="BBDD\V_SQL_FICHEROS.cs">
+      <DependentUpon>BdsaidModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="BBDD\V_SQL_INDICES_FRAGMENTACION.cs">
+      <DependentUpon>BdsaidModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="BBDD\V_SQL_TABLAS.cs">
+      <DependentUpon>BdsaidModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Negocio\MainWindow.xaml.cs">
+      <DependentUpon>MainWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Negocio\MenuPrincipal.xaml.cs">
+      <DependentUpon>MenuPrincipal.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Negocio\Palets.xaml.cs">
+      <DependentUpon>Palets.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Negocio\PaletStatusConverter.cs" />
+    <Compile Include="Negocio\Picking.xaml.cs">
+      <DependentUpon>Picking.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Negocio\Recepciones.xaml.cs">
+      <DependentUpon>Recepciones.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Negocio\ReferenciaService.cs" />
+    <Compile Include="Negocio\Revision.xaml.cs">
+      <DependentUpon>Revision.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Properties\AssemblyInfo.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    </Compile>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EntityDeploy Include="BBDD\BdsaidModel.edmx">
+      <Generator>EntityModelCodeGenerator</Generator>
+      <LastGenOutput>BdsaidModel.Designer.cs</LastGenOutput>
+    </EntityDeploy>
+    <None Include="BBDD\BdsaidModel.edmx.diagram">
+      <DependentUpon>BdsaidModel.edmx</DependentUpon>
+    </None>
+    <None Include="packages.config" />
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Include="Negocio\MainWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Negocio\MenuPrincipal.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Negocio\Palets.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Negocio\Picking.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Negocio\Recepciones.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Negocio\Revision.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="BBDD\BdsaidModel.Context.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <DependentUpon>BdsaidModel.edmx</DependentUpon>
+      <LastGenOutput>BdsaidModel.Context.cs</LastGenOutput>
+    </Content>
+    <Content Include="BBDD\BdsaidModel.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <DependentUpon>BdsaidModel.edmx</DependentUpon>
+      <LastGenOutput>BdsaidModel.cs</LastGenOutput>
+    </Content>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('packages\Microsoft.Build.Tasks.Git.8.0.0\build\Microsoft.Build.Tasks.Git.props')" Text="$([System.String]::Format('$(ErrorText)', 'packages\Microsoft.Build.Tasks.Git.8.0.0\build\Microsoft.Build.Tasks.Git.props'))" />
+    <Error Condition="!Exists('packages\Microsoft.Build.Tasks.Git.8.0.0\build\Microsoft.Build.Tasks.Git.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\Microsoft.Build.Tasks.Git.8.0.0\build\Microsoft.Build.Tasks.Git.targets'))" />
+    <Error Condition="!Exists('packages\Microsoft.SourceLink.Common.8.0.0\build\Microsoft.SourceLink.Common.props')" Text="$([System.String]::Format('$(ErrorText)', 'packages\Microsoft.SourceLink.Common.8.0.0\build\Microsoft.SourceLink.Common.props'))" />
+    <Error Condition="!Exists('packages\Microsoft.SourceLink.Common.8.0.0\build\Microsoft.SourceLink.Common.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\Microsoft.SourceLink.Common.8.0.0\build\Microsoft.SourceLink.Common.targets'))" />
+    <Error Condition="!Exists('packages\Microsoft.SourceLink.GitHub.8.0.0\build\Microsoft.SourceLink.GitHub.props')" Text="$([System.String]::Format('$(ErrorText)', 'packages\Microsoft.SourceLink.GitHub.8.0.0\build\Microsoft.SourceLink.GitHub.props'))" />
+    <Error Condition="!Exists('packages\Microsoft.SourceLink.GitHub.8.0.0\build\Microsoft.SourceLink.GitHub.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\Microsoft.SourceLink.GitHub.8.0.0\build\Microsoft.SourceLink.GitHub.targets'))" />
+  </Target>
+  <Import Project="packages\Microsoft.Build.Tasks.Git.8.0.0\build\Microsoft.Build.Tasks.Git.targets" Condition="Exists('packages\Microsoft.Build.Tasks.Git.8.0.0\build\Microsoft.Build.Tasks.Git.targets')" />
+  <Import Project="packages\Microsoft.SourceLink.Common.8.0.0\build\Microsoft.SourceLink.Common.targets" Condition="Exists('packages\Microsoft.SourceLink.Common.8.0.0\build\Microsoft.SourceLink.Common.targets')" />
+  <Import Project="packages\Microsoft.SourceLink.GitHub.8.0.0\build\Microsoft.SourceLink.GitHub.targets" Condition="Exists('packages\Microsoft.SourceLink.GitHub.8.0.0\build\Microsoft.SourceLink.GitHub.targets')" />
+</Project>

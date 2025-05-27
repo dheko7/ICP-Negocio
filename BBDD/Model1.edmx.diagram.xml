@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+ <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <edmx:Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <!-- Diagram content (shape and connector positions) -->
+    <edmx:Diagrams>
+      <Diagram DiagramId="43630a99f6444c7985a8faae6462d027" Name="Diagram1" ZoomLevel="55">
+        <EntityTypeShape EntityType="FCT_MAR_4Model.NSERIES_RECEPCIONES" Width="1.5" PointX="8.25" PointY="4.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="FCT_MAR_4Model.NSERIES_SEGUIMIENTO" Width="1.5" PointX="5.75" PointY="8.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="FCT_MAR_4Model.ORDEN_SALIDA_CAB" Width="1.5" PointX="0.75" PointY="9.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="FCT_MAR_4Model.ORDEN_SALIDA_LIN" Width="1.5" PointX="3" PointY="4.375" IsExpanded="true" />
+        <EntityTypeShape EntityType="FCT_MAR_4Model.PALETS" Width="1.5" PointX="6.125" PointY="4.5" IsExpanded="true" />
+        <EntityTypeShape EntityType="FCT_MAR_4Model.PICKING_LOG" Width="1.5" PointX="7.75" PointY="8.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="FCT_MAR_4Model.RECEPCIONES_CAB" Width="2" PointX="3.75" PointY="0.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="FCT_MAR_4Model.REFERENCIAS" Width="1.5" PointX="0.75" PointY="3.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="FCT_MAR_4Model.UBICACIONES" Width="1.5" PointX="3.75" PointY="8" IsExpanded="true" />
+        <EntityTypeShape EntityType="FCT_MAR_4Model.USUARIOS" Width="1.5" PointX="8.75" PointY="1.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="FCT_MAR_4Model.V_DETALLE_ALMACENAMIENTO_TABLAS" Width="1.5" PointX="9.75" PointY="7.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="FCT_MAR_4Model.V_DETALLE_FOREIGN_KEYS" Width="1.5" PointX="10.75" PointY="1.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="FCT_MAR_4Model.V_SQL_FICHEROS" Width="1.5" PointX="2.75" PointY="11.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="FCT_MAR_4Model.V_SQL_INDICES_FRAGMENTACION" Width="1.5" PointX="4.75" PointY="11.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="FCT_MAR_4Model.V_SQL_TABLAS" Width="1.5" PointX="11.75" PointY="5.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="FCT_MAR_4Model.VW_REFERENCIAS_STOCK" Width="1.5" PointX="6.75" PointY="12.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="FCT_MAR_4Model.VW_STOCK_DISPONIBLE" Width="1.5" PointX="11.75" PointY="8.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="FCT_MAR_4Model.V_GRANT" Width="1.5" PointX="11.75" PointY="11.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="FCT_MAR_4Model.V_SQL" Width="1.5" PointX="13.75" PointY="1.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="FCT_MAR_4Model.V_SQL_CAMPOS_TABLA" Width="1.5" PointX="13.75" PointY="9.875" IsExpanded="true" />
+        <AssociationConnector Association="FCT_MAR_4Model.FK_NSERIES_RECEPCIONES__PALETS" ManuallyRouted="false" />
+        <AssociationConnector Association="FCT_MAR_4Model.FK_NSERIES_RECEPCIONES__RECEPCIONES_CAB" ManuallyRouted="false" />
+        <AssociationConnector Association="FCT_MAR_4Model.FK_ORDEN_SALIDA_LIN_CAB" ManuallyRouted="false" />
+        <AssociationConnector Association="FCT_MAR_4Model.FK_ORDEN_SALIDA_LIN_REF" ManuallyRouted="false" />
+        <AssociationConnector Association="FCT_MAR_4Model.FK_PALETS__ALBARAN" ManuallyRouted="false" />
+        <AssociationConnector Association="FCT_MAR_4Model.FK_PALETS__REFERENCIA" ManuallyRouted="false" />
+        <AssociationConnector Association="FCT_MAR_4Model.FK_PALETS__UBICACION" ManuallyRouted="false" />
+        <AssociationConnector Association="FCT_MAR_4Model.FK_PALETS_REFERENCIAS" ManuallyRouted="false" />
+        <AssociationConnector Association="FCT_MAR_4Model.FK_PALETS_UBICACIONES" ManuallyRouted="false" />
+        <EntityTypeShape EntityType="FCT_MAR_4Model.RECEPCIONES_LIN" Width="1.5" PointX="6" PointY="0.75" />
+        <AssociationConnector Association="FCT_MAR_4Model.FK_RECEPCIONES_LIN_CAB" />
+        <AssociationConnector Association="FCT_MAR_4Model.FK_RECEPCIONES_LIN_REF" />
+        <AssociationConnector Association="FCT_MAR_4Model.FK_NSERIES_SEGUIMIENTO_PALETS" />
+      </Diagram>
+    </edmx:Diagrams>
+  </edmx:Designer>
+</edmx:Edmx>

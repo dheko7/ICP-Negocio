@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+ <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <edmx:Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <!-- Diagram content (shape and connector positions) -->
+    <edmx:Diagrams>
+      <Diagram DiagramId="135f9b86ddc54a8592e956859faa710b" Name="Diagram1" ZoomLevel="55">
+        <EntityTypeShape EntityType="bdsaidModel.NSERIES_RECEPCIONES" Width="1.5" PointX="8.25" PointY="5.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="bdsaidModel.NSERIES_SEGUIMIENTO" Width="1.5" PointX="8.25" PointY="9.625" IsExpanded="true" />
+        <EntityTypeShape EntityType="bdsaidModel.ORDEN_SALIDA_CAB" Width="1.5" PointX="0.75" PointY="11.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="bdsaidModel.ORDEN_SALIDA_LIN" Width="1.5" PointX="3" PointY="6.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="bdsaidModel.PALET" Width="1.5" PointX="6" PointY="6.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="bdsaidModel.PICKING_LOG" Width="1.5" PointX="5.75" PointY="0.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="bdsaidModel.RECEPCIONES_CAB" Width="1.5" PointX="0.75" PointY="2.625" IsExpanded="true" />
+        <EntityTypeShape EntityType="bdsaidModel.RECEPCIONES_LIN" Width="1.5" PointX="3" PointY="2.5" IsExpanded="true" />
+        <EntityTypeShape EntityType="bdsaidModel.REFERENCIA" Width="1.5" PointX="0.75" PointY="6.375" IsExpanded="true" />
+        <EntityTypeShape EntityType="bdsaidModel.sysdiagram" Width="1.5" PointX="7.75" PointY="0.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="bdsaidModel.UBICACIONE" Width="1.5" PointX="3.75" PointY="10.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="bdsaidModel.USUARIO" Width="1.5" PointX="9.75" PointY="0.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="bdsaidModel.V_DETALLE_ALMACENAMIENTO_TABLAS" Width="1.5" PointX="10.75" PointY="3.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="bdsaidModel.V_DETALLE_FOREIGN_KEYS" Width="1.5" PointX="10.75" PointY="10.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="bdsaidModel.V_GRANT" Width="1.5" PointX="12.75" PointY="0.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="bdsaidModel.V_SQL" Width="1.5" PointX="12.75" PointY="4.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="bdsaidModel.V_SQL_CAMPOS_TABLA" Width="1.5" PointX="12.75" PointY="12.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="bdsaidModel.V_SQL_FICHEROS" Width="1.5" PointX="5.75" PointY="13.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="bdsaidModel.V_SQL_INDICES_FRAGMENTACION" Width="1.5" PointX="7.75" PointY="13.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="bdsaidModel.V_SQL_TABLAS" Width="1.5" PointX="14.75" PointY="0.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="bdsaidModel.VW_REFERENCIAS_STOCK" Width="1.5" PointX="2.75" PointY="14.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="bdsaidModel.VW_STOCK_DISPONIBLE" Width="1.5" PointX="14.75" PointY="3.75" IsExpanded="true" />
+        <AssociationConnector Association="bdsaidModel.FK_NSERIES_RECEPCIONES__PALETS" ManuallyRouted="false" />
+        <AssociationConnector Association="bdsaidModel.FK_NSERIES_RECEPCIONES__RECEPCIONES_CAB" ManuallyRouted="false" />
+        <AssociationConnector Association="bdsaidModel.FK_NSERIES_SEGUIMIENTO_PALETS" ManuallyRouted="false" />
+        <AssociationConnector Association="bdsaidModel.FK_ORDEN_SALIDA_LIN_CAB" ManuallyRouted="false" />
+        <AssociationConnector Association="bdsaidModel.FK_ORDEN_SALIDA_LIN_REF" ManuallyRouted="false" />
+        <AssociationConnector Association="bdsaidModel.FK_PALETS__ALBARAN" ManuallyRouted="false" />
+        <AssociationConnector Association="bdsaidModel.FK_PALETS__REFERENCIA" ManuallyRouted="false" />
+        <AssociationConnector Association="bdsaidModel.FK_PALETS__UBICACION" ManuallyRouted="false" />
+        <AssociationConnector Association="bdsaidModel.FK_PALETS_REFERENCIAS" ManuallyRouted="false" />
+        <AssociationConnector Association="bdsaidModel.FK_PALETS_UBICACIONES" ManuallyRouted="false" />
+        <AssociationConnector Association="bdsaidModel.FK_RECEPCIONES_LIN_CAB" ManuallyRouted="false" />
+        <AssociationConnector Association="bdsaidModel.FK_RECEPCIONES_LIN_REF" ManuallyRouted="false" />
+      </Diagram>
+    </edmx:Diagrams>
+  </edmx:Designer>
+</edmx:Edmx>

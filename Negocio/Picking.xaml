@@ -1,0 +1,122 @@
+﻿<Window x:Class="ICP.Negocio.Picking"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Picking" Height="650" Width="900"
+        WindowStartupLocation="CenterScreen">
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <!-- Cabecera pedido -->
+            <RowDefinition Height="2*"/>
+            <!-- Lista pedidos -->
+            <RowDefinition Height="Auto"/>
+            <!-- Botón Iniciar -->
+            <RowDefinition Height="2*"/>
+            <!-- Detalle línea -->
+            <RowDefinition Height="Auto"/>
+            <!-- Progreso + Confirmar + Volver -->
+        </Grid.RowDefinitions>
+
+        <!-- Cabecera del pedido -->
+        <StackPanel Orientation="Horizontal" Grid.Row="0" Margin="0,0,0,10">
+            <Label Content="Petición:"/>
+            <TextBox x:Name="txtPeticion" Width="80" IsReadOnly="True" Margin="5,0"/>
+            <Label Content="Cliente:" Margin="20,0,0,0"/>
+            <TextBox x:Name="txtCliente" Width="150" IsReadOnly="True" Margin="5,0"/>
+            <Label Content="Estado:" Margin="20,0,0,0"/>
+            <TextBox x:Name="txtEstado" Width="100" IsReadOnly="True" Margin="5,0"/>
+            <Label Content="Total Líneas:" Margin="20,0,0,0"/>
+            <TextBox x:Name="txtTotalLineas" Width="60" IsReadOnly="True" Margin="5,0"/>
+        </StackPanel>
+
+        <!-- Pedidos con ESTATUS = 1 -->
+        <GroupBox Header="Pedidos con ESTATUS = 1" Grid.Row="1">
+            <DataGrid x:Name="dgPedidos"
+                      AutoGenerateColumns="False"
+                      IsReadOnly="True"
+                      SelectionMode="Single"
+                      SelectionChanged="DgPedidos_SelectionChanged">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Petición"  Binding="{Binding Peticion}"      Width="*"/>
+                    <DataGridTextColumn Header="Cliente"    Binding="{Binding NombreCliente}" Width="2*"/>
+                    <DataGridTextColumn Header="Estado"     Binding="{Binding EstatusPeticion}" Width="*"/>
+                    <DataGridTextColumn Header="Líneas"     Binding="{Binding TotalLineas}"   Width="*"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </GroupBox>
+
+        <!-- Botón Iniciar Picking -->
+        <StackPanel Orientation="Horizontal" Grid.Row="2" Margin="0,10">
+            <Button x:Name="btnIniciarPicking"
+                    Content="Iniciar Picking"
+                    Width="130"
+                    Click="BtnIniciarPicking_Click"
+                    IsEnabled="False"/>
+        </StackPanel>
+
+        <!-- Detalle línea actual de picking -->
+        <GroupBox Header="Línea de Picking Activa" Grid.Row="3" Margin="0,10">
+            <Grid Margin="5">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="Referencia:" VerticalAlignment="Center"/>
+                <TextBox   Grid.Row="0" Grid.Column="1" x:Name="txtReferencia"    IsReadOnly="True" Margin="5,2"/>
+                <TextBlock Grid.Row="0" Grid.Column="2" Text="Cant. Req.:" VerticalAlignment="Center"/>
+                <TextBox   Grid.Row="0" Grid.Column="3" x:Name="txtCantidadRequerida" IsReadOnly="True" Margin="5,2"/>
+
+                <TextBlock Grid.Row="1" Grid.Column="0" Text="Ubicación:" VerticalAlignment="Center"/>
+                <TextBox   Grid.Row="1" Grid.Column="1" x:Name="txtUbicacion"      IsReadOnly="True" Margin="5,2"/>
+                <TextBlock Grid.Row="1" Grid.Column="2" Text="Stock Disp.:" VerticalAlignment="Center"/>
+                <TextBox   Grid.Row="1" Grid.Column="3" x:Name="txtStockDisponible" IsReadOnly="True" Margin="5,2"/>
+
+                <TextBlock Grid.Row="2" Grid.Column="0" Text="Cant. a Picar:" VerticalAlignment="Center"/>
+                <TextBox   Grid.Row="2" Grid.Column="1" x:Name="txtCantidadPicar"  Margin="5,2"/>
+
+                <StackPanel Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="4"
+                            Orientation="Horizontal"
+                            x:Name="panelNumeroSerie"
+                            Visibility="Collapsed"
+                            Margin="0,5">
+                    <TextBlock Text="Nº de Serie:" VerticalAlignment="Center"/>
+                    <TextBox x:Name="txtNumeroSerie" Width="200" Margin="5,0"/>
+                </StackPanel>
+
+                <Button Grid.Row="4" Grid.Column="3"
+                        x:Name="btnConfirmarPicada"
+                        Content="Confirmar Picada"
+                        Width="130"
+                        Click="BtnConfirmarPicada_Click"
+                        IsEnabled="False"
+                        HorizontalAlignment="Right"/>
+            </Grid>
+        </GroupBox>
+
+        <!-- Progreso + Confirmar Pedido + Volver -->
+        <StackPanel Orientation="Horizontal" Grid.Row="4" VerticalAlignment="Center" Margin="0,10">
+            <ProgressBar x:Name="pbProgreso" Width="250" Height="20" Margin="0,0,10,0"/>
+            <TextBlock x:Name="txtProgreso" VerticalAlignment="Center" Margin="0,0,20,0"/>
+            <Button x:Name="btnConfirmarPedido"
+                    Content="Confirmar Pedido"
+                    Width="130"
+                    Click="BtnConfirmarPedido_Click"
+                    IsEnabled="False"
+                    Margin="0,0,10,0"/>
+            <Button x:Name="btnVolver"
+                    Content="Volver"
+                    Width="80"
+                    Click="BtnVolver_Click"/>
+        </StackPanel>
+    </Grid>
+</Window>

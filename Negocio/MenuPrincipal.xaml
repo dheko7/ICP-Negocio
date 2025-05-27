@@ -1,0 +1,21 @@
+﻿<Window x:Class="ICP.Negocio.MenuPrincipal"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="ICP - Menú Principal" Height="450" Width="800" WindowStartupLocation="CenterScreen">
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Text="Aplicacion ICP - Gestión Logística" FontSize="16" FontWeight="Bold" Grid.Row="0" HorizontalAlignment="Center" Margin="0,0,0,20"/>
+
+        <Button x:Name="btnRecepciones" Content="Recepciones" Width="200" Height="30" Grid.Row="1" HorizontalAlignment="Center" Margin="0,0,0,10" Click="BtnRecepciones_Click"/>
+        <Button x:Name="btnPalets" Content="Mover Palets" Width="200" Height="30" Grid.Row="2" HorizontalAlignment="Center" Margin="0,0,0,10" Click="BtnPalets_Click"/>
+        <Button x:Name="btnPicking" Content="Asignación y Picking" Width="200" Height="30" Grid.Row="3" HorizontalAlignment="Center" Margin="0,0,0,10" Click="BtnPicking_Click"/>
+        <Button x:Name="btnRevisión" Content="Revisión y Envío" Width="200" Height="30" Grid.Row="4" HorizontalAlignment="Center" Margin="0,0,0,10" Click="BtnRevision_Click"/>
+    </Grid>
+</Window>   
