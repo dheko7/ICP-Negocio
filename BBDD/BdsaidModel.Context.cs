@@ -49,6 +49,7 @@ namespace ICP.BBDD
         public virtual DbSet<V_SQL_TABLAS> V_SQL_TABLAS { get; set; }
         public virtual DbSet<VW_REFERENCIAS_STOCK> VW_REFERENCIAS_STOCK { get; set; }
         public virtual DbSet<VW_STOCK_DISPONIBLE> VW_STOCK_DISPONIBLE { get; set; }
+        public virtual DbSet<PROVEEDORE> PROVEEDORES { get; set; }
     
         [DbFunction("bdsaidEntities2", "FN_OBTENER_SIGUIENTE_PICADA")]
         public virtual IQueryable<FN_OBTENER_SIGUIENTE_PICADA_Result> FN_OBTENER_SIGUIENTE_PICADA(Nullable<int> pETICION)
@@ -233,6 +234,40 @@ namespace ICP.BBDD
         public virtual int sp_upgraddiagrams()
         {
             return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction("sp_upgraddiagrams");
+        }
+    
+        public virtual int SP_ASIGNAR_PEDIDO(Nullable<int> pETICION)
+        {
+            var pETICIONParameter = pETICION.HasValue ?
+                new ObjectParameter("PETICION", pETICION) :
+                new ObjectParameter("PETICION", typeof(int));
+    
+            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction("SP_ASIGNAR_PEDIDO", pETICIONParameter);
+        }
+    
+        public virtual int SP_REGISTRAR_NSERIE(Nullable<int> pETICION, Nullable<int> lINEA_ID, string nUMERO_SERIE, string uSUARIO, string rEF)
+        {
+            var pETICIONParameter = pETICION.HasValue ?
+                new ObjectParameter("PETICION", pETICION) :
+                new ObjectParameter("PETICION", typeof(int));
+    
+            var lINEA_IDParameter = lINEA_ID.HasValue ?
+                new ObjectParameter("LINEA_ID", lINEA_ID) :
+                new ObjectParameter("LINEA_ID", typeof(int));
+    
+            var nUMERO_SERIEParameter = nUMERO_SERIE != null ?
+                new ObjectParameter("NUMERO_SERIE", nUMERO_SERIE) :
+                new ObjectParameter("NUMERO_SERIE", typeof(string));
+    
+            var uSUARIOParameter = uSUARIO != null ?
+                new ObjectParameter("USUARIO", uSUARIO) :
+                new ObjectParameter("USUARIO", typeof(string));
+    
+            var rEFParameter = rEF != null ?
+                new ObjectParameter("REF", rEF) :
+                new ObjectParameter("REF", typeof(string));
+    
+            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction("SP_REGISTRAR_NSERIE", pETICIONParameter, lINEA_IDParameter, nUMERO_SERIEParameter, uSUARIOParameter, rEFParameter);
         }
     }
 }

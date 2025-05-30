@@ -2,45 +2,97 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:local="clr-namespace:ICP.Negocio"
-        Title="Gestión de Palets" Height="450" Width="800">
+        Title="Gestión de Palets"
+        Height="450" Width="800"
+        WindowStartupLocation="CenterScreen"
+        Background="#F9FAFB">
+
     <Window.Resources>
-        <local:PaletStatusConverter x:Key="PaletStatusConverter" />
+        <local:PaletStatusConverter      x:Key="PaletStatusConverter"/>
+        <local:PaletStatusColorConverter x:Key="PaletStatusColorConverter"/>
+
+        <Style TargetType="Button">
+            <Setter Property="Background" Value="#007ACC"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Padding" Value="6,3"/>
+            <Setter Property="Margin" Value="5,0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="4">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#005A9E"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter Property="Background" Value="#004377"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style TargetType="DataGrid" x:Key="GridStyle">
+            <Setter Property="AlternatingRowBackground" Value="#EFEFEF"/>
+            <Setter Property="RowBackground" Value="White"/>
+            <Setter Property="BorderBrush" Value="#CCC"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="GridLinesVisibility" Value="None"/>
+        </Style>
     </Window.Resources>
-    <Grid>
+
+    <Grid Margin="10">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
-            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- Filtros -->
         <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="5">
-            <TextBlock Text="Filtro Albarán:" Margin="5" />
-            <TextBox x:Name="txtFiltroAlbaran" Width="150" Margin="5" />
-            <TextBlock Text="Filtro Referencia:" Margin="5" />
-            <TextBox x:Name="txtFiltroReferencia" Width="150" Margin="5" />
-            <Button x:Name="BtnFiltrar" Content="Filtrar" Click="BtnFiltrar_Click" Margin="5" />
-            <Button x:Name="BtnLimpiarFiltro" Content="Limpiar Filtro" Click="BtnLimpiarFiltro_Click" Margin="5" />
+            <TextBlock Text="Filtro Albarán:" Margin="5" VerticalAlignment="Center"/>
+            <TextBox x:Name="txtFiltroAlbaran" Width="150" Margin="5"/>
+            <TextBlock Text="Filtro Referencia:" Margin="5" VerticalAlignment="Center"/>
+            <TextBox x:Name="txtFiltroReferencia" Width="150" Margin="5"/>
+            <Button x:Name="BtnFiltrar"       Content="Filtrar"         Click="BtnFiltrar_Click"/>
+            <Button x:Name="BtnLimpiarFiltro" Content="Limpiar Filtro" Click="BtnLimpiarFiltro_Click"/>
         </StackPanel>
 
-        <!-- Grid de Palets -->
-        <DataGrid x:Name="PaletsGrid" Grid.Row="1" AutoGenerateColumns="False" Margin="5">
+        <DataGrid x:Name="PaletsGrid"
+                  Grid.Row="1"
+                  AutoGenerateColumns="False"
+                  CanUserAddRows="False"
+                  SelectionMode="Single"
+                  Margin="5"
+                  Style="{StaticResource GridStyle}">
+            <DataGrid.RowStyle>
+                <Style TargetType="DataGridRow">
+                    <Setter Property="Background"
+                            Value="{Binding EstatusPalet, Converter={StaticResource PaletStatusColorConverter}}"/>
+                </Style>
+            </DataGrid.RowStyle>
             <DataGrid.Columns>
-                <DataGridTextColumn Header="Palet ID" Binding="{Binding PaletId}" />
-                <DataGridTextColumn Header="Referencia" Binding="{Binding Referencia}" />
-                <DataGridTextColumn Header="Cantidad" Binding="{Binding Cantidad}" />
-                <DataGridTextColumn Header="Albarán" Binding="{Binding Albaran}" />
-                <DataGridTextColumn Header="Ubicación" Binding="{Binding Ubicacion}" />
-                <DataGridTextColumn Header="Estatus Palet" Binding="{Binding EstatusPalet, Converter={StaticResource PaletStatusConverter}}" />
+                <DataGridTextColumn Header="Palet ID"   Binding="{Binding PaletId}"   Width="80"/>
+                <DataGridTextColumn Header="Referencia" Binding="{Binding Referencia}" Width="120"/>
+                <DataGridTextColumn Header="Cantidad"   Binding="{Binding Cantidad}"   Width="80"/>
+                <DataGridTextColumn Header="Albarán"    Binding="{Binding Albaran}"    Width="100"/>
+                <DataGridTextColumn Header="Ubicación"  Binding="{Binding Ubicacion}"  Width="100"/>
+                <DataGridTextColumn Header="Estado"
+                                    Binding="{Binding EstatusPalet, Converter={StaticResource PaletStatusConverter}}"
+                                    Width="100"/>
             </DataGrid.Columns>
         </DataGrid>
 
-        <!-- Mover Palet -->
-        <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="5">
-            <TextBlock Text="Nueva Ubicación:" Margin="5" />
-            <ComboBox x:Name="cmbUbicaciones" Width="150" Margin="5" />
-            <Button x:Name="BtnMover" Content="Mover Palet" Click="BtnMover_Click" Margin="5" />
-            <Button x:Name="BtnVolver" Content="Volver" Click="BtnVolver_Click" Margin="5" />
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="5">
+            <TextBlock Text="Nueva Ubicación:" Margin="5" VerticalAlignment="Center"/>
+            <ComboBox x:Name="cmbUbicaciones" Width="150" Margin="5"/>
+            <Button x:Name="BtnMover"  Content="Mover Palet" Click="BtnMover_Click"/>
+            <Button x:Name="BtnVolver" Content="Volver"      Click="BtnVolver_Click"/>
         </StackPanel>
     </Grid>
 </Window>

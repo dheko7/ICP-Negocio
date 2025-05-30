@@ -1,7 +1,53 @@
 ﻿<Window x:Class="ICP.Negocio.Recepciones"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Gestión de Recepciones - ICP" Height="600" Width="900">
+        Title="Gestión de Recepciones - ICP"
+        Height="600" Width="900"
+        WindowStartupLocation="CenterScreen"
+        Background="#F9FAFB">
+
+    <!-- 1) Estilos globales para mantener la misma estética -->
+    <Window.Resources>
+        <!-- Botones azul redondeado -->
+        <Style TargetType="Button">
+            <Setter Property="Background" Value="#007ACC"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Padding" Value="6,3"/>
+            <Setter Property="Margin" Value="5,0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                CornerRadius="4">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#005A9E"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter Property="Background" Value="#004377"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- DataGrids con alternancia suave y sin líneas -->
+        <Style TargetType="DataGrid" x:Key="GridStyle">
+            <Setter Property="AlternatingRowBackground" Value="#EFEFEF"/>
+            <Setter Property="RowBackground" Value="White"/>
+            <Setter Property="BorderBrush" Value="#CCC"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="GridLinesVisibility" Value="None"/>
+        </Style>
+    </Window.Resources>
+
     <Grid Margin="10">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -13,52 +59,122 @@
         <!-- Fila 0: Albarán -->
         <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10">
             <Label Content="Número de Albarán:" FontWeight="Bold"/>
-            <TextBox x:Name="txtAlbaran" Width="150" Margin="5,0,10,0" Text="ALB001"/>
-            <Button x:Name="BtnCargar" Content="Cargar" Width="80" Margin="5,0,10,0" Click="BtnCargar_Click"/>
-            <Button x:Name="BtnNuevaRecepcion" Content="Nueva Recepción" Width="120" Margin="5,0,0,0" Click="BtnNuevaRecepcion_Click"/>
+            <TextBox x:Name="txtAlbaran"
+                     Width="150"
+                     Margin="5,0,10,0"
+                     Text="ALB001"/>
+            <Button x:Name="BtnCargar"
+                    Content="Cargar"
+                    Width="80"
+                    Margin="5,0,10,0"
+                    Click="BtnCargar_Click"/>
+            <Button x:Name="BtnNuevaRecepcion"
+                    Content="Nueva Recepción"
+                    Width="120"
+                    Margin="5,0,0,0"
+                    Click="BtnNuevaRecepcion_Click"/>
         </StackPanel>
 
         <!-- Fila 1: Formulario para agregar línea -->
-        <GroupBox Grid.Row="1" Header="Agregar Línea" Margin="0,0,0,10" Padding="5">
+        <GroupBox Grid.Row="1"
+                  Header="Agregar Línea"
+                  Margin="0,0,0,10"
+                  Padding="5">
             <StackPanel Orientation="Vertical">
                 <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
                     <Label Content="Referencia:"/>
-                    <TextBox x:Name="txtReferencia" Width="150" Margin="5,0,10,0"/>
+                    <TextBox x:Name="txtReferencia"
+                             Width="150"
+                             Margin="5,0,10,0"/>
                     <Label Content="Cant. Buena:"/>
-                    <TextBox x:Name="txtCantidadBuena" Width="80" Margin="5,0,10,0" Text="0"/>
+                    <TextBox x:Name="txtCantidadBuena"
+                             Width="80"
+                             Margin="5,0,10,0"
+                             Text="0"/>
                     <Label Content="Cant. Mala:"/>
-                    <TextBox x:Name="txtCantidadMala" Width="80" Margin="5,0,10,0" Text="0"/>
+                    <TextBox x:Name="txtCantidadMala"
+                             Width="80"
+                             Margin="5,0,10,0"
+                             Text="0"/>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal">
                     <Label Content="N° Serie:"/>
-                    <TextBox x:Name="txtNumeroSerie" Width="150" Margin="5,0,10,0"/>
+                    <TextBox x:Name="txtNumeroSerie"
+                             Width="150"
+                             Margin="5,0,10,0"/>
                     <Label Content="Ubicación:"/>
-                    <ComboBox x:Name="cmbUbicaciones" Width="150" Margin="5,0,10,0"/>
+                    <ComboBox x:Name="cmbUbicaciones"
+                              Width="150"
+                              Margin="5,0,10,0"/>
                 </StackPanel>
             </StackPanel>
         </GroupBox>
 
         <!-- Fila 2: DataGrid para líneas de recepción -->
-        <DataGrid x:Name="RecepcionesGrid" Grid.Row="2" AutoGenerateColumns="False" Margin="0,0,0,10" CanUserAddRows="False" SelectionMode="Single">
+        <DataGrid x:Name="RecepcionesGrid"
+                  Grid.Row="2"
+                  AutoGenerateColumns="False"
+                  CanUserAddRows="False"
+                  SelectionMode="Single"
+                  Margin="0,0,0,10"
+                  Style="{StaticResource GridStyle}"
+                  SelectionChanged="RecepcionesGrid_SelectionChanged">
             <DataGrid.Columns>
-                <DataGridTextColumn Header="Albarán" Binding="{Binding Albaran}" Width="100" IsReadOnly="True"/>
-                <DataGridTextColumn Header="Línea" Binding="{Binding Linea}" Width="50" IsReadOnly="True"/>
-                <DataGridTextColumn Header="Referencia" Binding="{Binding Referencia}" Width="100" IsReadOnly="True"/>
-                <DataGridTextColumn Header="Cant. Buena" Binding="{Binding CantidadBuena, UpdateSourceTrigger=PropertyChanged}" Width="80"/>
-                <DataGridTextColumn Header="Cant. Mala" Binding="{Binding CantidadMala, UpdateSourceTrigger=PropertyChanged}" Width="80"/>
-                <DataGridTextColumn Header="N° Serie" Binding="{Binding NumeroSerie}" Width="100"/>
-                <DataGridTextColumn Header="Palet ID" Binding="{Binding PaletId}" Width="80" IsReadOnly="True"/>
-                <DataGridTextColumn Header="Ubicación" Binding="{Binding Ubicacion}" Width="100"/>
+                <DataGridTextColumn Header="Albarán"
+                                    Binding="{Binding Albaran}"
+                                    Width="100"
+                                    IsReadOnly="True"/>
+                <DataGridTextColumn Header="Línea"
+                                    Binding="{Binding Linea}"
+                                    Width="50"
+                                    IsReadOnly="True"/>
+                <DataGridTextColumn Header="Referencia"
+                                    Binding="{Binding Referencia}"
+                                    Width="100"
+                                    IsReadOnly="True"/>
+                <DataGridTextColumn Header="Cant. Buena"
+                                    Binding="{Binding CantidadBuena, UpdateSourceTrigger=PropertyChanged}"
+                                    Width="80"/>
+                <DataGridTextColumn Header="Cant. Mala"
+                                    Binding="{Binding CantidadMala, UpdateSourceTrigger=PropertyChanged}"
+                                    Width="80"/>
+                <DataGridTextColumn Header="N° Serie"
+                                    Binding="{Binding NumeroSerie}"
+                                    Width="100"/>
+                <DataGridTextColumn Header="Palet ID"
+                                    Binding="{Binding PaletId}"
+                                    Width="80"
+                                    IsReadOnly="True"/>
+                <DataGridTextColumn Header="Ubicación"
+                                    Binding="{Binding Ubicacion}"
+                                    Width="100"/>
             </DataGrid.Columns>
         </DataGrid>
 
         <!-- Fila 3: Botones de acción -->
-        <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right">
-            <Button x:Name="BtnAgregar" Content="Agregar Línea" Width="120" Margin="5" Click="BtnAgregar_Click"/>
-            <Button x:Name="BtnModificar" Content="Modificar Línea" Width="120" Margin="5" Click="BtnModificar_Click"/>
-            <Button x:Name="BtnNuevaRef" Content="Referencia Desconocida" Width="150" Margin="5" Click="BtnNuevaRef_Click"/>
-            <Button x:Name="BtnConfirmar" Content="Confirmar Recepción" Width="120" Margin="5" Click="BtnConfirmar_Click"/>
-            <Button x:Name="BtnVolver" Content="Volver" Width="100" Margin="5" Click="BtnVolver_Click"/>
+        <StackPanel Grid.Row="3"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Right">
+            <Button x:Name="BtnAgregar"
+                    Content="Agregar Línea"
+                    Width="120"
+                    Click="BtnAgregar_Click"/>
+            <Button x:Name="BtnModificar"
+                    Content="Modificar Línea"
+                    Width="120"
+                    Click="BtnModificar_Click"/>
+            <Button x:Name="BtnNuevaRef"
+                    Content="Referencia Desconocida"
+                    Width="150"
+                    Click="BtnNuevaRef_Click"/>
+            <Button x:Name="BtnConfirmar"
+                    Content="Confirmar Recepción"
+                    Width="120"
+                    Click="BtnConfirmar_Click"/>
+            <Button x:Name="BtnVolver"
+                    Content="Volver"
+                    Width="100"
+                    Click="BtnVolver_Click"/>
         </StackPanel>
     </Grid>
 </Window>

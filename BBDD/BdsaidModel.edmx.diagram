@@ -39,6 +39,7 @@
         <AssociationConnector Association="bdsaidModel.FK_PALETS_UBICACIONES" ManuallyRouted="false" />
         <AssociationConnector Association="bdsaidModel.FK_RECEPCIONES_LIN_CAB" ManuallyRouted="false" />
         <AssociationConnector Association="bdsaidModel.FK_RECEPCIONES_LIN_REF" ManuallyRouted="false" />
+        <EntityTypeShape EntityType="bdsaidModel.PROVEEDORE" Width="1.5" PointX="15.375" PointY="6.75" />
       </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>

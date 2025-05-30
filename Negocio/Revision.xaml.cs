@@ -1,6 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Data.SqlClient;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -8,151 +9,168 @@ namespace ICP.Negocio
 {
     public partial class Revision : Window
     {
-        private readonly string _connectionString =
+        private const string cs =
             "Server=localhost\\SQLEXPRESS01;Database=bdsaid;Integrated Security=True;MultipleActiveResultSets=True;";
 
-        private class RecepcionCab
-        {
-            public string ALBARAN { get; set; }
-            public string PROVEEDOR { get; set; }
-            public DateTime F_CREACION { get; set; }
-        }
-
-        private class RecepcionLin
-        {
-            public int LINEA { get; set; }
-            public string REFERENCIA { get; set; }
-            public int CANTIDAD_BUENA { get; set; }
-            public string NUMERO_SERIE { get; set; }
-            public string UBICACION { get; set; }
-        }
+        private ObservableCollection<LineaPedido> _lineas = new ObservableCollection<LineaPedido>();
 
         public Revision()
         {
             InitializeComponent();
-            CargarRecepciones();
+            dgPedidos.ItemsSource = LoadPedidos();
+            dgLineas.ItemsSource = _lineas;
         }
 
-        private void CargarRecepciones()
+        private ObservableCollection<PedidoCab> LoadPedidos()
         {
-            var lista = new List<RecepcionCab>();
-            try
+            var list = new ObservableCollection<PedidoCab>();
+            using (var conn = new SqlConnection(cs))
+            using (var cmd = new SqlCommand(@"
+                SELECT PETICION,
+                       F_CREACION,
+                       CODIGO_CLIENTE,
+                       ESTATUS_PETICION,
+                       (SELECT COUNT(*) FROM ORDEN_SALIDA_LIN WHERE PETICION = cab.PETICION) AS TotalLineas
+                  FROM ORDEN_SALIDA_CAB cab
+                 WHERE ESTATUS_PETICION IN (2,3)
+                 ORDER BY F_CREACION DESC", conn))
             {
-                using (var conn = new SqlConnection(_connectionString))
-                using (var cmd = new SqlCommand(
-                    "SELECT ALBARAN, PROVEEDOR, F_CREACION " +
-                    "FROM RECEPCIONES_CAB WHERE ESTATUS_RECEPCION = 2", conn))
-                {
-                    conn.Open();
-                    using (var rdr = cmd.ExecuteReader())
-                        while (rdr.Read())
-                            lista.Add(new RecepcionCab
-                            {
-                                ALBARAN = rdr.GetString(0),
-                                PROVEEDOR = rdr.IsDBNull(1) ? "" : rdr.GetString(1),
-                                F_CREACION = rdr.GetDateTime(2)
-                            });
-                }
-
-                dgRecepciones.ItemsSource = lista;
-                dgLineas.ItemsSource = null;
-                btnConfirmar.IsEnabled = false;
+                conn.Open();
+                using (var rdr = cmd.ExecuteReader())
+                    while (rdr.Read())
+                        list.Add(new PedidoCab
+                        {
+                            Peticion = rdr.GetInt32(0),
+                            Fecha = rdr.GetDateTime(1),
+                            CodigoCliente = rdr.GetString(2),
+                            Estatus = rdr.GetInt32(3),
+                            TotalLineas = rdr.GetInt32(4)
+                        });
             }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Error al cargar recepciones:\n{ex.Message}", "Error",
-                                MessageBoxButton.OK, MessageBoxImage.Error);
-            }
+            return list;
         }
 
-        private void DgRecepciones_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void DgPedidos_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            var sel = dgRecepciones.SelectedItem as RecepcionCab;
-            if (sel == null)
-            {
-                dgLineas.ItemsSource = null;
-                btnConfirmar.IsEnabled = false;
-                return;
-            }
+            _lineas.Clear();
+            btnEnviar.IsEnabled = false;
+            txtEstado.Text = "";
 
-            CargarLineas(sel.ALBARAN);
-            btnConfirmar.IsEnabled = true;
-        }
-
-        private void CargarLineas(string albaran)
-        {
-            var lista = new List<RecepcionLin>();
-            try
-            {
-                using (var conn = new SqlConnection(_connectionString))
-                using (var cmd = new SqlCommand(
-                    "SELECT LINEA, REFERENCIA, CANTIDAD_BUENA, NUMERO_SERIE, UBICACION " +
-                    "FROM RECEPCIONES_LIN WHERE ALBARAN = @alb", conn))
-                {
-                    cmd.Parameters.AddWithValue("@alb", albaran);
-                    conn.Open();
-                    using (var rdr = cmd.ExecuteReader())
-                        while (rdr.Read())
-                            lista.Add(new RecepcionLin
-                            {
-                                LINEA = rdr.GetInt32(0),
-                                REFERENCIA = rdr.GetString(1),
-                                CANTIDAD_BUENA = rdr.IsDBNull(2) ? 0 : rdr.GetInt32(2),
-                                NUMERO_SERIE = rdr.IsDBNull(3) ? "" : rdr.GetString(3),
-                                UBICACION = rdr.IsDBNull(4) ? "" : rdr.GetString(4)
-                            });
-                }
-
-                dgLineas.ItemsSource = lista;
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Error al cargar líneas:\n{ex.Message}", "Error",
-                                MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-        }
-
-        private void BtnConfirmar_Click(object sender, RoutedEventArgs e)
-        {
-            var sel = dgRecepciones.SelectedItem as RecepcionCab;
+            var sel = dgPedidos.SelectedItem as PedidoCab;
             if (sel == null) return;
 
-            var resp = MessageBox.Show(
-                $"¿Confirmar recepción '{sel.ALBARAN}' como Enviada a ICP?",
-                "Confirmar envío", MessageBoxButton.YesNo, MessageBoxImage.Question);
-            if (resp != MessageBoxResult.Yes) return;
+            // Si ya está enviado (3), deshabilitamos confirmación
+            bool esEnviado = sel.Estatus == 3;
 
-            try
+            using (var conn = new SqlConnection(cs))
+            using (var cmd = new SqlCommand(@"
+                SELECT LINEA, REFERENCIA, CANTIDAD, ISNULL(CANTIDAD_PICADA,0) AS Picada
+                  FROM ORDEN_SALIDA_LIN
+                 WHERE PETICION = @pet
+                 ORDER BY LINEA", conn))
             {
-                using (var conn = new SqlConnection(_connectionString))
-                using (var cmd = new SqlCommand(
-                    "UPDATE RECEPCIONES_CAB " +
-                    "SET ESTATUS_RECEPCION = 3, F_CONFIRMACION = GETDATE() " +
-                    "WHERE ALBARAN = @alb", conn))
-                {
-                    cmd.Parameters.AddWithValue("@alb", sel.ALBARAN);
-                    conn.Open();
-                    if (cmd.ExecuteNonQuery() == 0)
-                        throw new Exception("No se actualizó ninguna fila. ¿Existe la recepción?");
-                }
-
-                MessageBox.Show("Recepción confirmada y enviada a ICP.", "Éxito",
-                                MessageBoxButton.OK, MessageBoxImage.Information);
-
-                CargarRecepciones();
+                cmd.Parameters.AddWithValue("@pet", sel.Peticion);
+                conn.Open();
+                using (var rdr = cmd.ExecuteReader())
+                    while (rdr.Read())
+                        _lineas.Add(new LineaPedido
+                        {
+                            Linea = rdr.GetInt32(0),
+                            Referencia = rdr.GetString(1),
+                            Cantidad = rdr.GetInt32(2),
+                            Picada = rdr.GetInt32(3),
+                            Confirmado = esEnviado // si ya está enviado, marcamos todas confirmadas
+                        });
             }
-            catch (Exception ex)
+
+            // Si estaba envío (3), no permitimos volver a enviar
+            if (esEnviado)
             {
-                MessageBox.Show($"Error al confirmar envío:\n{ex.Message}", "Error",
-                                MessageBoxButton.OK, MessageBoxImage.Error);
+                txtEstado.Text = "Este pedido ya fue enviado.";
+                btnEnviar.IsEnabled = false;
             }
+        }
+
+        private void BtnConfirmarLinea_Click(object sender, RoutedEventArgs e)
+        {
+            var lin = (LineaPedido)((Button)sender).DataContext;
+            lin.Confirmado = true;
+            dgLineas.Items.Refresh();
+
+            if (_lineas.All(x => x.Confirmado))
+            {
+                txtEstado.Text = "Todas las líneas comprobadas.";
+                btnEnviar.IsEnabled = true;
+            }
+        }
+
+        private void BtnEnviar_Click(object sender, RoutedEventArgs e)
+        {
+            var sel = dgPedidos.SelectedItem as PedidoCab;
+            if (sel == null) return;
+
+            if (MessageBox.Show(
+                $"¿Marcar pedido {sel.Peticion} como ENVIADO?",
+                "Enviar al transporte",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question) != MessageBoxResult.Yes) return;
+
+            using (var conn = new SqlConnection(cs))
+            using (var cmd = new SqlCommand(@"
+                UPDATE ORDEN_SALIDA_CAB
+                   SET ESTATUS_PETICION = 3,
+                       F_CONFIRMACION   = GETDATE()
+                 WHERE PETICION = @pet", conn))
+            {
+                cmd.Parameters.AddWithValue("@pet", sel.Peticion);
+                conn.Open();
+                cmd.ExecuteNonQuery();
+            }
+
+            MessageBox.Show("Pedido marcado como ENVIADO.", "Éxito", MessageBoxButton.OK, MessageBoxImage.Information);
+
+            // Recargo la lista con estado 2 y 3, para que el enviado siga viéndose
+            dgPedidos.ItemsSource = LoadPedidos();
+            // mantengo el mismo seleccionado
+            dgPedidos.SelectedItem = dgPedidos.Items.Cast<PedidoCab>()
+                                        .FirstOrDefault(x => x.Peticion == sel.Peticion);
         }
 
         private void BtnVolver_Click(object sender, RoutedEventArgs e)
         {
-            var menu = new MenuPrincipal();
-            menu.Show();
-            this.Close();
+            new MenuPrincipal().Show();
+            Close();
         }
+    }
+
+    public class PedidoCab
+    {
+        public int Peticion { get; set; }
+        public DateTime Fecha { get; set; }
+        public string CodigoCliente { get; set; }
+        public int Estatus { get; set; }
+        public int TotalLineas { get; set; }
+
+        public string EstadoNombre
+        {
+            get
+            {
+                switch (Estatus)
+                {
+                    case 2: return "Ejecutado";
+                    case 3: return "Enviado";
+                    default: return "Desconocido";
+                }
+            }
+        }
+    }
+
+    public class LineaPedido
+    {
+        public int Linea { get; set; }
+        public string Referencia { get; set; }
+        public int Cantidad { get; set; }
+        public int Picada { get; set; }
+        public bool Confirmado { get; set; }
     }
 }

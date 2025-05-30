@@ -29,68 +29,72 @@ namespace ICP.Negocio
         private void CargarPedidos()
         {
             pedidos.Clear();
-            using (var conn = new SqlConnection(ConnectionString))
-            using (var cmd = new SqlCommand(@"
-                SELECT PETICION,
-                       CODIGO_CLIENTE,
-                       ESTATUS_PETICION,
-                       (SELECT COUNT(*) 
-                          FROM ORDEN_SALIDA_LIN 
-                         WHERE PETICION = OSC.PETICION) AS TOTAL_LINEAS
-                  FROM ORDEN_SALIDA_CAB OSC
-                 WHERE ESTATUS_PETICION = 1
-                 ORDER BY PETICION", conn))
+            try
             {
-                conn.Open();
-                using (var rdr = cmd.ExecuteReader())
+                using (SqlConnection conn = new SqlConnection(ConnectionString))
                 {
-                    while (rdr.Read())
+                    SqlCommand cmd = new SqlCommand(@"
+                        SELECT PETICION,
+                               CODIGO_CLIENTE,
+                               ESTATUS_PETICION,
+                               (SELECT COUNT(*) FROM ORDEN_SALIDA_LIN WHERE PETICION = OSC.PETICION) AS TOTAL_LINEAS
+                          FROM ORDEN_SALIDA_CAB OSC
+                         ORDER BY PETICION", conn);
+                    conn.Open();
+                    using (SqlDataReader rdr = cmd.ExecuteReader())
                     {
-                        pedidos.Add(new Pedido
+                        while (rdr.Read())
                         {
-                            Peticion = (int)rdr["PETICION"],
-                            NombreCliente = rdr["CODIGO_CLIENTE"].ToString(),
-                            EstatusPeticion = (int)rdr["ESTATUS_PETICION"],
-                            TotalLineas = (int)rdr["TOTAL_LINEAS"]
-                        });
+                            pedidos.Add(new Pedido
+                            {
+                                Peticion = (int)rdr["PETICION"],
+                                NombreCliente = rdr["CODIGO_CLIENTE"].ToString(),
+                                EstatusPeticion = (int)rdr["ESTATUS_PETICION"],
+                                TotalLineas = (int)rdr["TOTAL_LINEAS"]
+                            });
+                        }
                     }
                 }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error cargando pedidos:\n" + ex.Message,
+                                "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
         private void DgPedidos_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (dgPedidos.SelectedItem is Pedido p)
-            {
-                pedidoSeleccionado = p;
-                txtPeticion.Text = p.Peticion.ToString();
-                txtCliente.Text = p.NombreCliente;
-                txtEstado.Text = p.EstatusPeticion.ToString();
-                txtTotalLineas.Text = p.TotalLineas.ToString();
-                btnIniciarPicking.IsEnabled = true;
+            if (!(dgPedidos.SelectedItem is Pedido p)) return;
+            pedidoSeleccionado = p;
 
-                lineasPicadas = 0;
-                totalLineas = p.TotalLineas;
-                pbProgreso.Value = 0;
-                txtProgreso.Text = "0% completado";
+            txtPeticion.Text = p.Peticion.ToString();
+            txtCliente.Text = p.NombreCliente;
+            txtEstado.Text = p.EstatusNombre;
+            txtTotalLineas.Text = p.TotalLineas.ToString();
 
-                DeshabilitarControlesPicada();
-                btnConfirmarPedido.IsEnabled = false;
-            }
+            // Solo activo si está Pendiente (1)
+            btnIniciarPicking.IsEnabled = (p.EstatusPeticion == 1);
+            btnConfirmarPedido.IsEnabled = false;
+
+            lineasPicadas = 0;
+            totalLineas = p.TotalLineas;
+            pbProgreso.Value = 0;
+            txtProgreso.Text = "0% completado";
+
+            DeshabilitarControlesPicada();
         }
 
         private void BtnIniciarPicking_Click(object sender, RoutedEventArgs e)
         {
-            if (pedidoSeleccionado == null || pedidoSeleccionado.EstatusPeticion != 1)
+            if (pedidoSeleccionado == null) return;
+            if (pedidoSeleccionado.EstatusPeticion != 1)
             {
-                MessageBox.Show("El pedido no está en estado adecuado para picking.", "Error");
+                MessageBox.Show("Sólo pedidos pendientes (1).",
+                                "Estado inválido", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
-
-            if (!VerificarStockParaPedido(pedidoSeleccionado.Peticion))
-                return;
-
-            // Iniciamos flujo de picada
+            if (!VerificarStockParaPedido(pedidoSeleccionado.Peticion)) return;
             CargarPicadaActual();
         }
 
@@ -105,12 +109,12 @@ namespace ICP.Negocio
                     ON vw.REFERENCIA = osl.REFERENCIA
                  WHERE osl.PETICION = @PETICION";
 
-            using (var conn = new SqlConnection(ConnectionString))
-            using (var cmd = new SqlCommand(sql, conn))
+            using (SqlConnection conn = new SqlConnection(ConnectionString))
             {
-                cmd.Parameters.Add("@PETICION", SqlDbType.Int).Value = peticion;
+                SqlCommand cmd = new SqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@PETICION", peticion);
                 conn.Open();
-                using (var rdr = cmd.ExecuteReader())
+                using (SqlDataReader rdr = cmd.ExecuteReader())
                 {
                     while (rdr.Read())
                     {
@@ -119,72 +123,109 @@ namespace ICP.Negocio
                         if (disp < nec)
                         {
                             MessageBox.Show(
-                                $"Stock insuficiente para {rdr["REFERENCIA"]}.\nDisponible: {disp}, Necesario: {nec}",
+                                $"Stock insuficiente para {rdr["REFERENCIA"]}.\nDisp: {disp}, Nec: {nec}",
                                 "Stock insuficiente",
-                                MessageBoxButton.OK,
-                                MessageBoxImage.Warning);
+                                MessageBoxButton.OK, MessageBoxImage.Warning);
                             return false;
                         }
                     }
                 }
             }
-
             return true;
         }
 
         private void CargarPicadaActual()
         {
-            // Sacamos la siguiente línea pendiente de picar
-            using (var conn = new SqlConnection(ConnectionString))
-            using (var cmd = new SqlCommand("SELECT * FROM FN_OBTENER_SIGUIENTE_PICADA(@PETICION)", conn))
+            try
             {
-                cmd.Parameters.Add("@PETICION", SqlDbType.Int).Value = pedidoSeleccionado.Peticion;
-                conn.Open();
-                using (var rdr = cmd.ExecuteReader())
+                using (SqlConnection conn = new SqlConnection(ConnectionString))
                 {
-                    if (!rdr.Read())
+                    conn.Open();
+
+                    // 1) Siguiente línea pendiente
+                    string sql = @"
+                        SELECT TOP 1
+                            osl.PETICION,
+                            osl.LINEA,
+                            osl.REFERENCIA,
+                            osl.CANTIDAD - ISNULL(osl.CANTIDAD_PICADA,0) AS CANTIDAD,
+                            r.LLEVA_N_SERIES AS REQUIERE_NUMERO_SERIE
+                        FROM ORDEN_SALIDA_LIN osl
+                        JOIN REFERENCIAS r ON r.REFERENCIA = osl.REFERENCIA
+                        WHERE osl.PETICION = @PETICION
+                          AND osl.CANTIDAD > ISNULL(osl.CANTIDAD_PICADA,0)
+                        ORDER BY osl.LINEA";
+
+                    SqlCommand cmd = new SqlCommand(sql, conn);
+                    cmd.Parameters.AddWithValue("@PETICION", pedidoSeleccionado.Peticion);
+
+                    using (SqlDataReader rdr = cmd.ExecuteReader())
                     {
-                        // Ya no quedan líneas
-                        picadaActual = null;
-                        DeshabilitarControlesPicada();
-                        VerificarEstadoPedido();
-                        return;
+                        if (!rdr.Read())
+                        {
+                            MessageBox.Show("No quedan líneas por picar.",
+                                            "Picking completado",
+                                            MessageBoxButton.OK, MessageBoxImage.Information);
+                            picadaActual = null;
+                            DeshabilitarControlesPicada();
+                            VerificarEstadoPedido();
+                            return;
+                        }
+
+                        picadaActual = new Picada
+                        {
+                            Peticion = (int)rdr["PETICION"],
+                            LineaId = (int)rdr["LINEA"],
+                            Referencia = rdr["REFERENCIA"].ToString(),
+                            Cantidad = (int)rdr["CANTIDAD"],
+                            RequiereNumeroSerie = (bool)rdr["REQUIERE_NUMERO_SERIE"]
+                        };
                     }
 
-                    picadaActual = new Picada
-                    {
-                        Peticion = (int)rdr["PETICION"],
-                        LineaId = (int)rdr["LINEA"],
-                        Referencia = rdr["REFERENCIA"].ToString(),
-                        Cantidad = (int)rdr["CANTIDAD"],
-                        Ubicacion = rdr["UBICACION"].ToString(),
-                        RequiereNumeroSerie = (bool)rdr["REQUIERE_NUMERO_SERIE"]
-                    };
-                }
+                    // 2) Ubicación + stock desde la vista
+                    string stockSql = @"
+                        SELECT TOP 1 UBICACION, STOCK_DISPONIBLE
+                          FROM VW_STOCK_DISPONIBLE
+                         WHERE REFERENCIA = @REF
+                           AND STOCK_DISPONIBLE > 0
+                         ORDER BY STOCK_DISPONIBLE DESC";
 
-                // Obtenemos stock disponible para esa ubicación
-                using (var stockCmd = new SqlCommand(@"
-                    SELECT ISNULL(SUM(STOCK_DISPONIBLE),0)
-                      FROM VW_STOCK_DISPONIBLE
-                     WHERE REFERENCIA = @REF
-                       AND UBICACION  = @UBI", conn))
-                {
+                    SqlCommand stockCmd = new SqlCommand(stockSql, conn);
                     stockCmd.Parameters.AddWithValue("@REF", picadaActual.Referencia);
-                    stockCmd.Parameters.AddWithValue("@UBI", picadaActual.Ubicacion);
-                    picadaActual.StockDisponible = Convert.ToInt32(stockCmd.ExecuteScalar());
+
+                    using (SqlDataReader sr = stockCmd.ExecuteReader())
+                    {
+                        if (sr.Read())
+                        {
+                            picadaActual.Ubicacion = sr["UBICACION"].ToString();
+                            picadaActual.StockDisponible = (int)sr["STOCK_DISPONIBLE"];
+                        }
+                        else
+                        {
+                            picadaActual.Ubicacion = "";
+                            picadaActual.StockDisponible = 0;
+                        }
+                    }
                 }
             }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error en CargarPicadaActual:\n" + ex.Message,
+                                "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
 
-            // Refrescamos UI
+            // Refrescar UI
             txtReferencia.Text = picadaActual.Referencia;
             txtCantidadRequerida.Text = picadaActual.Cantidad.ToString();
             txtUbicacion.Text = picadaActual.Ubicacion;
             txtStockDisponible.Text = picadaActual.StockDisponible.ToString();
             txtCantidadPicar.Text = picadaActual.Cantidad.ToString();
-            panelNumeroSerie.Visibility = picadaActual.RequiereNumeroSerie
-                                          ? Visibility.Visible
-                                          : Visibility.Collapsed;
-            txtNumeroSerie.Text = "";
+            panelNumeroSerie.Visibility =
+                picadaActual.RequiereNumeroSerie
+                    ? Visibility.Visible
+                    : Visibility.Collapsed;
+            txtNumeroSerie.Clear();
             HabilitarControlesPicada();
         }
 
@@ -192,21 +233,24 @@ namespace ICP.Negocio
         {
             if (picadaActual == null) return;
 
-            if (!int.TryParse(txtCantidadPicar.Text, out int qty)
-                || qty <= 0
-                || qty > picadaActual.Cantidad)
+            int qty;
+            if (!int.TryParse(txtCantidadPicar.Text, out qty) ||
+                qty <= 0 ||
+                qty > picadaActual.Cantidad)
             {
-                MessageBox.Show("Cantidad inválida.", "Error");
+                MessageBox.Show("Cantidad a picar inválida.",
+                                "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
-            if (picadaActual.RequiereNumeroSerie
-                && string.IsNullOrWhiteSpace(txtNumeroSerie.Text))
+            if (picadaActual.RequiereNumeroSerie &&
+                string.IsNullOrWhiteSpace(txtNumeroSerie.Text))
             {
-                MessageBox.Show("Se requiere número de serie.", "Error");
+                MessageBox.Show("Se requiere número de serie.",
+                                "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
-            // Llamamos al SP de picada
+            // Llamada al SP que controla línea, log y cierre
             using (var conn = new SqlConnection(ConnectionString))
             using (var cmd = new SqlCommand("SP_MARCAR_PICADA", conn))
             {
@@ -215,49 +259,43 @@ namespace ICP.Negocio
                 cmd.Parameters.AddWithValue("@LINEA_ID", picadaActual.LineaId);
                 cmd.Parameters.AddWithValue("@CANTIDAD_PICADA", qty);
                 cmd.Parameters.AddWithValue("@UBICACION", picadaActual.Ubicacion);
+
+                // ← Aquí añades el parámetro del n-serie
                 cmd.Parameters.AddWithValue("@NUMERO_SERIE", (object)txtNumeroSerie.Text ?? DBNull.Value);
+
                 cmd.Parameters.AddWithValue("@USUARIO", Usuario);
+
                 conn.Open();
                 cmd.ExecuteNonQuery();
             }
 
             lineasPicadas++;
+            VerificarEstadoPedido();    // <— habilita ConfirmarPedido cuando toque
             CargarPicadaActual();
         }
 
         private void VerificarEstadoPedido()
         {
-            double porcentaje = totalLineas == 0
-                ? 100
-                : (double)lineasPicadas / totalLineas * 100;
+            double porcentaje;
+            if (totalLineas == 0)
+                porcentaje = 100;
+            else
+                porcentaje = (double)lineasPicadas / totalLineas * 100;
 
             pbProgreso.Value = porcentaje;
-            txtProgreso.Text = $"{porcentaje:F1}% completado";
+            txtProgreso.Text = porcentaje.ToString("F1") + "% completado";
 
-            // Cuando haya picado todas las líneas...
+            // Habilitamos ConfirmarPedido sólo al acabar
             btnConfirmarPedido.IsEnabled = (lineasPicadas >= totalLineas);
         }
 
         private void BtnConfirmarPedido_Click(object sender, RoutedEventArgs e)
         {
-            if (pedidoSeleccionado == null) return;
-
-            using (var conn = new SqlConnection(ConnectionString))
-            using (var cmd = new SqlCommand(
-                "UPDATE ORDEN_SALIDA_CAB " +
-                "   SET ESTATUS_PETICION = 2 " +
-                " WHERE PETICION = @PETICION", conn))
-            {
-                cmd.Parameters.AddWithValue("@PETICION", pedidoSeleccionado.Peticion);
-                conn.Open();
-                cmd.ExecuteNonQuery();
-            }
-
-            MessageBox.Show("Pedido marcado como ‘Ejecutado’ (2).", "Éxito", MessageBoxButton.OK, MessageBoxImage.Information);
+            // Recargamos la lista (ahora ya con ESTATUS actualizado)
             CargarPedidos();
             DeshabilitarControlesPicada();
-            btnConfirmarPedido.IsEnabled = false;
             btnIniciarPicking.IsEnabled = false;
+            btnConfirmarPedido.IsEnabled = false;
         }
 
         private void HabilitarControlesPicada()
@@ -292,6 +330,21 @@ namespace ICP.Negocio
         public string NombreCliente { get; set; }
         public int EstatusPeticion { get; set; }
         public int TotalLineas { get; set; }
+        public string EstatusNombre
+        {
+            get
+            {
+                switch (EstatusPeticion)
+                {
+                    case 1: return "Pendiente";
+                    case 2: return "En Proceso";
+                    case 3: return "Ejecutado";
+                    case 4: return "Comprobado";
+                    case 5: return "Enviado";
+                    default: return "Desconocido";
+                }
+            }
+        }
     }
 
     public class Picada

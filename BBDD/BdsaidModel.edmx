@@ -84,6 +84,13 @@
           <Property Name="PETICION" Type="nvarchar" MaxLength="50" />
           <Property Name="REFERENCIA" Type="nvarchar" MaxLength="50" />
         </EntityType>
+        <EntityType Name="PROVEEDORES">
+          <Key>
+            <PropertyRef Name="CodigoProveedor" />
+          </Key>
+          <Property Name="CodigoProveedor" Type="varchar" MaxLength="20" Nullable="false" />
+          <Property Name="NombreProveedor" Type="varchar" MaxLength="100" Nullable="false" />
+        </EntityType>
         <EntityType Name="RECEPCIONES_CAB">
           <Key>
             <PropertyRef Name="ALBARAN" />
@@ -525,6 +532,9 @@ warning 6002: The table/view 'bdsaid.dbo.VW_STOCK_DISPONIBLE' does not have a pr
           <Parameter Name="version" Type="int" Mode="In" />
           <Parameter Name="definition" Type="varbinary(max)" Mode="In" />
         </Function>
+        <Function Name="SP_ASIGNAR_PEDIDO" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
+          <Parameter Name="PETICION" Type="int" Mode="In" />
+        </Function>
         <Function Name="sp_creatediagram" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
           <Parameter Name="diagramname" Type="nvarchar" Mode="In" />
           <Parameter Name="owner_id" Type="int" Mode="In" />
@@ -551,6 +561,13 @@ warning 6002: The table/view 'bdsaid.dbo.VW_STOCK_DISPONIBLE' does not have a pr
           <Parameter Name="NUMERO_SERIE" Type="nvarchar" Mode="In" />
           <Parameter Name="USUARIO" Type="nvarchar" Mode="In" />
         </Function>
+        <Function Name="SP_REGISTRAR_NSERIE" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
+          <Parameter Name="PETICION" Type="int" Mode="In" />
+          <Parameter Name="LINEA_ID" Type="int" Mode="In" />
+          <Parameter Name="NUMERO_SERIE" Type="nvarchar" Mode="In" />
+          <Parameter Name="USUARIO" Type="nvarchar" Mode="In" />
+          <Parameter Name="REF" Type="nvarchar" Mode="In" />
+        </Function>
         <Function Name="sp_renamediagram" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
           <Parameter Name="diagramname" Type="nvarchar" Mode="In" />
           <Parameter Name="owner_id" Type="int" Mode="In" />
@@ -564,6 +581,7 @@ warning 6002: The table/view 'bdsaid.dbo.VW_STOCK_DISPONIBLE' does not have a pr
           <EntitySet Name="ORDEN_SALIDA_LIN" EntityType="Self.ORDEN_SALIDA_LIN" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="PALETS" EntityType="Self.PALETS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="PICKING_LOG" EntityType="Self.PICKING_LOG" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="PROVEEDORES" EntityType="Self.PROVEEDORES" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="RECEPCIONES_CAB" EntityType="Self.RECEPCIONES_CAB" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="RECEPCIONES_LIN" EntityType="Self.RECEPCIONES_LIN" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="REFERENCIAS" EntityType="Self.REFERENCIAS" Schema="dbo" store:Type="Tables" />
@@ -1290,6 +1308,17 @@ warning 6002: The table/view 'bdsaid.dbo.VW_STOCK_DISPONIBLE' does not have a pr
             <Parameter Name="new_diagramname" Mode="In" Type="String" />
           </FunctionImport>
           <FunctionImport Name="sp_upgraddiagrams" />
+          <EntitySet Name="PROVEEDORES" EntityType="bdsaidModel.PROVEEDORE" />
+          <FunctionImport Name="SP_ASIGNAR_PEDIDO">
+            <Parameter Name="PETICION" Mode="In" Type="Int32" />
+          </FunctionImport>
+          <FunctionImport Name="SP_REGISTRAR_NSERIE">
+            <Parameter Name="PETICION" Mode="In" Type="Int32" />
+            <Parameter Name="LINEA_ID" Mode="In" Type="Int32" />
+            <Parameter Name="NUMERO_SERIE" Mode="In" Type="String" />
+            <Parameter Name="USUARIO" Mode="In" Type="String" />
+            <Parameter Name="REF" Mode="In" Type="String" />
+          </FunctionImport>
         </EntityContainer>
         <ComplexType Name="sp_helpdiagramdefinition_Result">
           <Property Type="Int32" Name="version" Nullable="true" />
@@ -1302,6 +1331,13 @@ warning 6002: The table/view 'bdsaid.dbo.VW_STOCK_DISPONIBLE' does not have a pr
           <Property Type="String" Name="Owner" Nullable="true" MaxLength="128" />
           <Property Type="Int32" Name="OwnerID" Nullable="false" />
         </ComplexType>
+        <EntityType Name="PROVEEDORE">
+          <Key>
+            <PropertyRef Name="CodigoProveedor" />
+          </Key>
+          <Property Name="CodigoProveedor" Type="String" Nullable="false" MaxLength="20" FixedLength="false" Unicode="false" />
+          <Property Name="NombreProveedor" Type="String" Nullable="false" MaxLength="100" FixedLength="false" Unicode="false" />
+        </EntityType>
       </Schema>
     </edmx:ConceptualModels>
     <!-- C-S mapping content -->
@@ -1674,6 +1710,16 @@ warning 6002: The table/view 'bdsaid.dbo.VW_STOCK_DISPONIBLE' does not have a pr
           <FunctionImportMapping FunctionImportName="SP_MARCAR_PICADA" FunctionName="bdsaidModel.Store.SP_MARCAR_PICADA" />
           <FunctionImportMapping FunctionImportName="sp_renamediagram" FunctionName="bdsaidModel.Store.sp_renamediagram" />
           <FunctionImportMapping FunctionImportName="sp_upgraddiagrams" FunctionName="bdsaidModel.Store.sp_upgraddiagrams" />
+          <EntitySetMapping Name="PROVEEDORES">
+            <EntityTypeMapping TypeName="bdsaidModel.PROVEEDORE">
+              <MappingFragment StoreEntitySet="PROVEEDORES">
+                <ScalarProperty Name="NombreProveedor" ColumnName="NombreProveedor" />
+                <ScalarProperty Name="CodigoProveedor" ColumnName="CodigoProveedor" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <FunctionImportMapping FunctionImportName="SP_ASIGNAR_PEDIDO" FunctionName="bdsaidModel.Store.SP_ASIGNAR_PEDIDO" />
+          <FunctionImportMapping FunctionImportName="SP_REGISTRAR_NSERIE" FunctionName="bdsaidModel.Store.SP_REGISTRAR_NSERIE" />
         </EntityContainerMapping>
       </Mapping>
     </edmx:Mappings>

@@ -143,6 +143,9 @@
     <Compile Include="BBDD\PICKING_LOG.cs">
       <DependentUpon>BdsaidModel.tt</DependentUpon>
     </Compile>
+    <Compile Include="BBDD\PROVEEDORE.cs">
+      <DependentUpon>BdsaidModel.tt</DependentUpon>
+    </Compile>
     <Compile Include="BBDD\RECEPCIONES_CAB.cs">
       <DependentUpon>BdsaidModel.tt</DependentUpon>
     </Compile>
@@ -203,9 +206,11 @@
     <Compile Include="Negocio\MenuPrincipal.xaml.cs">
       <DependentUpon>MenuPrincipal.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Negocio\NotConverter.cs" />
     <Compile Include="Negocio\Palets.xaml.cs">
       <DependentUpon>Palets.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Negocio\PaletStatusColorConverter.cs" />
     <Compile Include="Negocio\PaletStatusConverter.cs" />
     <Compile Include="Negocio\Picking.xaml.cs">
       <DependentUpon>Picking.xaml</DependentUpon>
