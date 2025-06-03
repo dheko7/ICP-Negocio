@@ -4,11 +4,11 @@
         Title="Gestión de Recepciones - ICP"
         Height="600" Width="900"
         WindowStartupLocation="CenterScreen"
-        Background="#F9FAFB">
+        Background="#F9FAFB"
+        Loaded="Window_Loaded">
 
-    <!-- 1) Estilos globales para mantener la misma estética -->
     <Window.Resources>
-        <!-- Botones azul redondeado -->
+        <!-- Estilo de botones (azul redondeado) -->
         <Style TargetType="Button">
             <Setter Property="Background" Value="#007ACC"/>
             <Setter Property="Foreground" Value="White"/>
@@ -38,7 +38,7 @@
             </Setter>
         </Style>
 
-        <!-- DataGrids con alternancia suave y sin líneas -->
+        <!-- Estilo uniforme para todos los DataGrid -->
         <Style TargetType="DataGrid" x:Key="GridStyle">
             <Setter Property="AlternatingRowBackground" Value="#EFEFEF"/>
             <Setter Property="RowBackground" Value="White"/>
@@ -51,18 +51,22 @@
     <Grid Margin="10">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
+            <!-- 0: Selección de Albarán -->
             <RowDefinition Height="Auto"/>
+            <!-- 1: Formulario Agregar/Editar Línea -->
             <RowDefinition Height="*"/>
+            <!-- 2: DataGrid Líneas -->
             <RowDefinition Height="Auto"/>
+            <!-- 3: Botones de acción -->
         </Grid.RowDefinitions>
 
-        <!-- Fila 0: Albarán -->
+        <!-- Fila 0: ComboBox “editable” de Albaranes + Botones “Cargar” y “Nueva Recepción” -->
         <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10">
             <Label Content="Número de Albarán:" FontWeight="Bold"/>
-            <TextBox x:Name="txtAlbaran"
-                     Width="150"
-                     Margin="5,0,10,0"
-                     Text="ALB001"/>
+            <ComboBox x:Name="cmbAlbaranes"
+                      IsEditable="True"
+                      Width="150"
+                      Margin="5,0,10,0"/>
             <Button x:Name="BtnCargar"
                     Content="Cargar"
                     Width="80"
@@ -75,9 +79,9 @@
                     Click="BtnNuevaRecepcion_Click"/>
         </StackPanel>
 
-        <!-- Fila 1: Formulario para agregar línea -->
+        <!-- Fila 1: Formulario para agregar o editar una línea de recepción -->
         <GroupBox Grid.Row="1"
-                  Header="Agregar Línea"
+                  Header="Agregar / Editar Línea"
                   Margin="0,0,0,10"
                   Padding="5">
             <StackPanel Orientation="Vertical">
@@ -85,20 +89,19 @@
                     <Label Content="Referencia:"/>
                     <TextBox x:Name="txtReferencia"
                              Width="150"
+                             IsReadOnly="True"
                              Margin="5,0,10,0"/>
                     <Label Content="Cant. Buena:"/>
                     <TextBox x:Name="txtCantidadBuena"
                              Width="80"
-                             Margin="5,0,10,0"
-                             Text="0"/>
+                             Margin="5,0,10,0"/>
                     <Label Content="Cant. Mala:"/>
                     <TextBox x:Name="txtCantidadMala"
                              Width="80"
-                             Margin="5,0,10,0"
-                             Text="0"/>
+                             Margin="5,0,10,0"/>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal">
-                    <Label Content="N° Serie:"/>
+                    <Label Content="Nº Serie:"/>
                     <TextBox x:Name="txtNumeroSerie"
                              Width="150"
                              Margin="5,0,10,0"/>
@@ -110,7 +113,7 @@
             </StackPanel>
         </GroupBox>
 
-        <!-- Fila 2: DataGrid para líneas de recepción -->
+        <!-- Fila 2: DataGrid que muestra las líneas cargadas para este albarán -->
         <DataGrid x:Name="RecepcionesGrid"
                   Grid.Row="2"
                   AutoGenerateColumns="False"
@@ -130,7 +133,12 @@
                                     IsReadOnly="True"/>
                 <DataGridTextColumn Header="Referencia"
                                     Binding="{Binding Referencia}"
-                                    Width="100"
+                                    Width="110"
+                                    IsReadOnly="True"/>
+                <!-- Columna Descripción -->
+                <DataGridTextColumn Header="Descripción"
+                                    Binding="{Binding Descripcion}"
+                                    Width="200"
                                     IsReadOnly="True"/>
                 <DataGridTextColumn Header="Cant. Buena"
                                     Binding="{Binding CantidadBuena, UpdateSourceTrigger=PropertyChanged}"
@@ -138,7 +146,7 @@
                 <DataGridTextColumn Header="Cant. Mala"
                                     Binding="{Binding CantidadMala, UpdateSourceTrigger=PropertyChanged}"
                                     Width="80"/>
-                <DataGridTextColumn Header="N° Serie"
+                <DataGridTextColumn Header="Nº Serie"
                                     Binding="{Binding NumeroSerie}"
                                     Width="100"/>
                 <DataGridTextColumn Header="Palet ID"
@@ -151,7 +159,7 @@
             </DataGrid.Columns>
         </DataGrid>
 
-        <!-- Fila 3: Botones de acción -->
+        <!-- Fila 3: Botones “Agregar Línea”, “Modificar Línea”, “Referencia Desconocida”, “Confirmar Recepción” y “Volver” -->
         <StackPanel Grid.Row="3"
                     Orientation="Horizontal"
                     HorizontalAlignment="Right">
