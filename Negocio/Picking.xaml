@@ -6,15 +6,15 @@
         Background="#F9FAFB">
 
     <Window.Resources>
-        <!-- Estilo para todos los botones (fondo azul redondeado) -->
+        <!-- Botones azul redondeado -->
         <Style TargetType="Button">
-            <Setter Property="Background" Value="#007ACC"/>
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="Padding" Value="6,3"/>
-            <Setter Property="Margin" Value="5,0"/>
-            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Background"     Value="#007ACC"/>
+            <Setter Property="Foreground"     Value="White"/>
+            <Setter Property="Padding"        Value="6,3"/>
+            <Setter Property="Margin"         Value="5,0"/>
+            <Setter Property="Cursor"         Value="Hand"/>
             <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontWeight"     Value="SemiBold"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
@@ -34,16 +34,16 @@
             </Setter>
         </Style>
 
-        <!-- Estilo uniforme para todos los DataGrid -->
+        <!-- Estilo DataGrid -->
         <Style TargetType="DataGrid" x:Key="GridStyle">
             <Setter Property="AlternatingRowBackground" Value="#EFEFEF"/>
-            <Setter Property="RowBackground" Value="White"/>
-            <Setter Property="BorderBrush" Value="#CCC"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="GridLinesVisibility" Value="None"/>
+            <Setter Property="RowBackground"            Value="White"/>
+            <Setter Property="BorderBrush"              Value="#CCC"/>
+            <Setter Property="BorderThickness"          Value="1"/>
+            <Setter Property="GridLinesVisibility"      Value="None"/>
         </Style>
 
-        <!-- Filas coloreadas según EstatusPeticion -->
+        <!-- Colorea filas por estado -->
         <Style TargetType="DataGridRow" x:Key="PedidoRowStyle">
             <Setter Property="Background" Value="Transparent"/>
             <Style.Triggers>
@@ -56,62 +56,42 @@
                 <DataTrigger Binding="{Binding EstatusPeticion}" Value="3">
                     <Setter Property="Background" Value="LightGreen"/>
                 </DataTrigger>
-                <DataTrigger Binding="{Binding EstatusPeticion}" Value="4">
-                    <Setter Property="Background" Value="LightSalmon"/>
-                </DataTrigger>
-                <DataTrigger Binding="{Binding EstatusPeticion}" Value="5">
-                    <Setter Property="Background" Value="LightCoral"/>
-                </DataTrigger>
             </Style.Triggers>
         </Style>
     </Window.Resources>
 
     <Grid Margin="10">
         <Grid.RowDefinitions>
-            <!-- Row 0: Cabecera (petición, cliente, estado, total líneas) -->
             <RowDefinition Height="Auto"/>
-            <!-- Row 1: Datos adicionales de cabecera (fecha creación, dirección entrega) -->
             <RowDefinition Height="Auto"/>
-            <!-- Row 2: Lista de pedidos -->
             <RowDefinition Height="2*"/>
-            <!-- Row 3: Botón “Iniciar Picking” -->
             <RowDefinition Height="Auto"/>
-            <!-- Row 4: Detalle de la línea activa (ahora con 6 filas internas) -->
             <RowDefinition Height="3*"/>
-            <!-- Row 5: Barra de progreso + Confirmar Pedido -->
             <RowDefinition Height="Auto"/>
-            <!-- Row 6: Botón “Volver” -->
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- ===========================
-             Row 0: Cabecera (Petición, Cliente, Estado, Total Líneas)
-             =========================== -->
+        <!-- Cabecera -->
         <StackPanel Orientation="Horizontal" Grid.Row="0" Margin="0,0,0,10">
             <TextBlock Text="Petición:" Margin="0,0,5,0"/>
-            <TextBox   x:Name="txtPeticion"    Width="80"  IsReadOnly="True" Margin="0,0,20,0"/>
-            <TextBlock Text="Cliente:" Margin="0,0,5,0"/>
-            <TextBox   x:Name="txtCliente"     Width="150" IsReadOnly="True" Margin="0,0,20,0"/>
-            <TextBlock Text="Estado:" Margin="0,0,5,0"/>
-            <TextBox   x:Name="txtEstado"      Width="120" IsReadOnly="True" Margin="0,0,20,0"/>
+            <TextBox   x:Name="txtPeticion"     Width="80"  IsReadOnly="True" Margin="0,0,20,0"/>
+            <TextBlock Text="Cliente:"  Margin="0,0,5,0"/>
+            <TextBox   x:Name="txtCliente"      Width="150" IsReadOnly="True" Margin="0,0,20,0"/>
+            <TextBlock Text="Estado:"   Margin="0,0,5,0"/>
+            <TextBox   x:Name="txtEstado"       Width="120" IsReadOnly="True" Margin="0,0,20,0"/>
             <TextBlock Text="Total Líneas:" Margin="0,0,5,0"/>
-            <TextBox   x:Name="txtTotalLineas" Width="60"  IsReadOnly="True"/>
+            <TextBox   x:Name="txtTotalLineas"  Width="60"  IsReadOnly="True"/>
         </StackPanel>
 
-        <!-- ===========================
-             Row 1: Datos adicionales de cabecera (Fecha Creación, Dirección Entrega)
-             =========================== -->
+        <!-- Fecha y dirección -->
         <StackPanel Orientation="Horizontal" Grid.Row="1" Margin="0,0,0,10">
-            <TextBlock Text="Fecha Creación:" Margin="0,0,5,0"/>
-            <TextBox   x:Name="txtFechaCreacion"   Width="100" IsReadOnly="True" Margin="0,0,20,0"/>
+            <TextBlock Text="Fecha Creación:"   Margin="0,0,5,0"/>
+            <TextBox   x:Name="txtFechaCreacion" Width="100" IsReadOnly="True" Margin="0,0,20,0"/>
             <TextBlock Text="Dirección Entrega:" Margin="0,0,5,0"/>
-            <TextBox   x:Name="txtDireccionEntrega" Width="300" IsReadOnly="True" Margin="0,0,20,0"/>
-            <!-- Ya no mostramos teléfono, porque la tabla real no lo tiene -->
+            <TextBox   x:Name="txtDireccionEntrega" Width="300" IsReadOnly="True"/>
         </StackPanel>
 
-        <!-- ===========================
-             Row 2: DataGrid que muestra la lista de pedidos
-             =========================== -->
+        <!-- Lista de pedidos -->
         <GroupBox Header="Pedidos" Grid.Row="2" Margin="0,0,0,10">
             <DataGrid x:Name="dgPedidos"
                       AutoGenerateColumns="False"
@@ -121,35 +101,23 @@
                       RowStyle="{StaticResource PedidoRowStyle}"
                       SelectionChanged="DgPedidos_SelectionChanged">
                 <DataGrid.Columns>
-                    <DataGridTextColumn Header="Petición"   Binding="{Binding Peticion}"      Width="*"/>
-                    <DataGridTextColumn Header="Cliente"    Binding="{Binding NombreCliente}" Width="2*"/>
-                    <DataGridTextColumn Header="Estado"     Binding="{Binding EstatusNombre}" Width="*"/>
-                    <DataGridTextColumn Header="Líneas"     Binding="{Binding TotalLineas}"   Width="*"/>
+                    <DataGridTextColumn Header="Petición" Binding="{Binding Peticion}"      Width="*"/>
+                    <DataGridTextColumn Header="Cliente"  Binding="{Binding NombreCliente}" Width="2*"/>
+                    <DataGridTextColumn Header="Estado"   Binding="{Binding EstatusNombre}" Width="*"/>
+                    <DataGridTextColumn Header="Líneas"   Binding="{Binding TotalLineas}"   Width="*"/>
                 </DataGrid.Columns>
             </DataGrid>
         </GroupBox>
 
-        <!-- ===========================
-             Row 3: Botón “Iniciar Picking”
-             =========================== -->
-        <StackPanel Orientation="Horizontal" Grid.Row="3" Margin="0,0,0,10">
-            <Button x:Name="btnIniciarPicking"
-                    Content="Iniciar Picking"
-                    Width="130"
-                    Click="BtnIniciarPicking_Click"
-                    IsEnabled="False"/>
-        </StackPanel>
+        <!-- Iniciar -->
+        <Button x:Name="btnIniciarPicking"
+                Content="Iniciar Picking"
+                Grid.Row="3"
+                Width="130"
+                IsEnabled="False"
+                Click="BtnIniciarPicking_Click"/>
 
-        <!-- ===========================
-             Row 4: Detalle de la línea de picking activa
-             Ahora con 6 filas internas:
-             - Row 0: Referencia + (ahora no editable)
-             - Row 1: Nombre del Producto (descripción)
-             - Row 2: Cantidad Requerida
-             - Row 3: Ubicación + Stock Disponible
-             - Row 4: Cantidad a Picar + Panel de Nº Serie (si aplica)
-             - Row 5: Botón “Confirmar Picada”
-             =========================== -->
+        <!-- Detalle de la línea activa -->
         <GroupBox Header="Línea de Picking Activa" Grid.Row="4" Margin="0,0,0,10">
             <Grid Margin="5">
                 <Grid.ColumnDefinitions>
@@ -160,42 +128,34 @@
                 </Grid.ColumnDefinitions>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
-                    <!-- 0: Referencia -->
                     <RowDefinition Height="Auto"/>
-                    <!-- 1: Nombre del Producto -->
                     <RowDefinition Height="Auto"/>
-                    <!-- 2: Cant. Requerida -->
                     <RowDefinition Height="Auto"/>
-                    <!-- 3: Ubicación + Stock -->
                     <RowDefinition Height="Auto"/>
-                    <!-- 4: Cant. a Picar + Nº Serie -->
                     <RowDefinition Height="Auto"/>
-                    <!-- 5: Botón Confirmar Picada -->
                 </Grid.RowDefinitions>
 
-                <!-- Row 0: Referencia (solo lectura) -->
                 <TextBlock Grid.Row="0" Grid.Column="0" Text="Referencia:"/>
-                <TextBox   Grid.Row="0" Grid.Column="1" x:Name="txtReferencia"        IsReadOnly="True" Margin="5,2"
-                           ToolTip="Código de la referencia" />
+                <TextBox   Grid.Row="0" Grid.Column="1" x:Name="txtReferencia"
+                           IsReadOnly="True" Margin="5,2"/>
 
-                <!-- Row 1: Nombre del Producto (descripción obtenida desde REFERENCIAS.DES_REFERENCIA) -->
                 <TextBlock Grid.Row="1" Grid.Column="0" Text="Nombre Producto:"/>
-                <TextBox   Grid.Row="1" Grid.Column="1" x:Name="txtDescripcionProducto" IsReadOnly="True" Margin="5,2"
-                           ToolTip="Descripción de la referencia" />
+                <TextBox   Grid.Row="1" Grid.Column="1" x:Name="txtNombreProducto"
+                           IsReadOnly="True" Margin="5,2"/>
 
-                <!-- Row 2: Cantidad Requerida (solo lectura) -->
                 <TextBlock Grid.Row="2" Grid.Column="0" Text="Cant. Req.:"/>
-                <TextBox   Grid.Row="2" Grid.Column="1" x:Name="txtCantidadRequerida" IsReadOnly="True" Margin="5,2"/>
+                <TextBox   Grid.Row="2" Grid.Column="1" x:Name="txtCantidadRequerida"
+                           IsReadOnly="True" Margin="5,2"/>
 
-                <!-- Row 3: Ubicación + Stock Disponible -->
                 <TextBlock Grid.Row="3" Grid.Column="0" Text="Ubicación:"/>
-                <TextBox   Grid.Row="3" Grid.Column="1" x:Name="txtUbicacion"         IsReadOnly="True" Margin="5,2"/>
+                <TextBox   Grid.Row="3" Grid.Column="1" x:Name="txtUbicacion"
+                           IsReadOnly="True" Margin="5,2"/>
                 <TextBlock Grid.Row="3" Grid.Column="2" Text="Stock Disp.:"/>
-                <TextBox   Grid.Row="3" Grid.Column="3" x:Name="txtStockDisponible"   IsReadOnly="True" Margin="5,2"/>
+                <TextBox   Grid.Row="3" Grid.Column="3" x:Name="txtStockDisponible"
+                           IsReadOnly="True" Margin="5,2"/>
 
-                <!-- Row 4: Cantidad a Picar + (opcional) Panel de Nº Serie -->
                 <TextBlock Grid.Row="4" Grid.Column="0" Text="Cant. a Picar:"/>
-                <TextBox   Grid.Row="4" Grid.Column="1" x:Name="txtCantidadPicar"    Margin="5,2"/>
+                <TextBox   Grid.Row="4" Grid.Column="1" x:Name="txtCantidadPicar" Margin="5,2"/>
 
                 <StackPanel Grid.Row="4" Grid.Column="2" Grid.ColumnSpan="2"
                             Orientation="Horizontal"
@@ -206,37 +166,30 @@
                     <TextBox   x:Name="txtNumeroSerie" Width="200" Margin="5,0"/>
                 </StackPanel>
 
-                <!-- Row 5: Botón “Confirmar Picada” -->
-                <Button Grid.Row="5" Grid.Column="3"
-                        x:Name="btnConfirmarPicada"
-                        Content="Confirmar Picada"
-                        Width="130"
+                <Button Grid.Row="5" Grid.Column="3" x:Name="btnConfirmarPicada"
+                        Content="Confirmar Picada" Width="130"
                         Click="BtnConfirmarPicada_Click"
-                        IsEnabled="False"
-                        HorizontalAlignment="Right"/>
+                        IsEnabled="False" HorizontalAlignment="Right"/>
             </Grid>
         </GroupBox>
 
-        <!-- ===========================
-             Row 5: Barra de progreso, porcentaje y botón “Confirmar Pedido”
-             =========================== -->
-        <StackPanel Orientation="Horizontal" Grid.Row="5" VerticalAlignment="Center" Margin="0,0,0,10">
+        <!-- Progreso & Confirmar pedido -->
+        <StackPanel Orientation="Horizontal" Grid.Row="5" Margin="0,0,0,10">
             <ProgressBar x:Name="pbProgreso" Width="250" Height="20" Margin="0,0,10,0"/>
-            <TextBlock x:Name="txtProgreso" Margin="0,0,20,0"/>
+            <TextBlock  x:Name="txtProgreso" Margin="0,0,20,0"/>
             <Button x:Name="btnConfirmarPedido"
                     Content="Confirmar Pedido"
                     Width="130"
-                    Click="BtnConfirmarPedido_Click"
                     IsEnabled="False"
-                    Margin="0,0,10,0"/>
+                    Click="BtnConfirmarPedido_Click"/>
         </StackPanel>
 
-        <!-- ===========================
-             Row 6: Botón “Volver” que regresa al menú principal
-             =========================== -->
-        <StackPanel Orientation="Horizontal" Grid.Row="6" HorizontalAlignment="Right">
-            <Button x:Name="btnVolver" Content="Volver" Width="80" Click="BtnVolver_Click"/>
-        </StackPanel>
-
+        <!-- Volver -->
+        <Button x:Name="btnVolver"
+                Content="Volver"
+                Grid.Row="6"
+                Width="80"
+                HorizontalAlignment="Right"
+                Click="BtnVolver_Click"/>
     </Grid>
 </Window>

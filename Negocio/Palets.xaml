@@ -8,9 +8,11 @@
         Background="#F9FAFB">
 
     <Window.Resources>
+        <!-- Convertidores para mostrar nombre de estado y color según ESTATUS_PALET -->
         <local:PaletStatusConverter      x:Key="PaletStatusConverter"/>
         <local:PaletStatusColorConverter x:Key="PaletStatusColorConverter"/>
 
+        <!-- Estilo unificado para todos los botones -->
         <Style TargetType="Button">
             <Setter Property="Background" Value="#007ACC"/>
             <Setter Property="Foreground" Value="White"/>
@@ -38,9 +40,8 @@
             </Setter>
         </Style>
 
+        <!-- Estilo para DataGrid (sin forzar colores de fila para que el convertidor pinte) -->
         <Style TargetType="DataGrid" x:Key="GridStyle">
-            <Setter Property="AlternatingRowBackground" Value="#EFEFEF"/>
-            <Setter Property="RowBackground" Value="White"/>
             <Setter Property="BorderBrush" Value="#CCC"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="GridLinesVisibility" Value="None"/>
@@ -54,6 +55,7 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
+        <!-- Filtros de búsqueda -->
         <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="5">
             <TextBlock Text="Filtro Albarán:" Margin="5" VerticalAlignment="Center"/>
             <TextBox x:Name="txtFiltroAlbaran" Width="150" Margin="5"/>
@@ -63,6 +65,7 @@
             <Button x:Name="BtnLimpiarFiltro" Content="Limpiar Filtro" Click="BtnLimpiarFiltro_Click"/>
         </StackPanel>
 
+        <!-- DataGrid que muestra la entidad PALET directamente -->
         <DataGrid x:Name="PaletsGrid"
                   Grid.Row="1"
                   AutoGenerateColumns="False"
@@ -70,24 +73,37 @@
                   SelectionMode="Single"
                   Margin="5"
                   Style="{StaticResource GridStyle}">
+            <!-- Fila coloreada según EstatusPalet -->
             <DataGrid.RowStyle>
                 <Style TargetType="DataGridRow">
                     <Setter Property="Background"
                             Value="{Binding EstatusPalet, Converter={StaticResource PaletStatusColorConverter}}"/>
                 </Style>
             </DataGrid.RowStyle>
+
             <DataGrid.Columns>
-                <DataGridTextColumn Header="Palet ID"   Binding="{Binding PaletId}"   Width="80"/>
-                <DataGridTextColumn Header="Referencia" Binding="{Binding Referencia}" Width="120"/>
-                <DataGridTextColumn Header="Cantidad"   Binding="{Binding Cantidad}"   Width="80"/>
-                <DataGridTextColumn Header="Albarán"    Binding="{Binding Albaran}"    Width="100"/>
-                <DataGridTextColumn Header="Ubicación"  Binding="{Binding Ubicacion}"  Width="100"/>
+                <DataGridTextColumn Header="Palet ID"
+                                    Binding="{Binding PaletId}"
+                                    Width="80"/>
+                <DataGridTextColumn Header="Referencia"
+                                    Binding="{Binding Referencia}"
+                                    Width="120"/>
+                <DataGridTextColumn Header="Cantidad"
+                                    Binding="{Binding Cantidad}"
+                                    Width="80"/>
+                <DataGridTextColumn Header="Albarán"
+                                    Binding="{Binding Albaran}"
+                                    Width="100"/>
+                <DataGridTextColumn Header="Ubicación"
+                                    Binding="{Binding Ubicacion}"
+                                    Width="100"/>
                 <DataGridTextColumn Header="Estado"
                                     Binding="{Binding EstatusPalet, Converter={StaticResource PaletStatusConverter}}"
                                     Width="100"/>
             </DataGrid.Columns>
         </DataGrid>
 
+        <!-- Controles para mover palet -->
         <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="5">
             <TextBlock Text="Nueva Ubicación:" Margin="5" VerticalAlignment="Center"/>
             <ComboBox x:Name="cmbUbicaciones" Width="150" Margin="5"/>

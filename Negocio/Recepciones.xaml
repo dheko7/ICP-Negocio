@@ -171,10 +171,6 @@
                     Content="Modificar Línea"
                     Width="120"
                     Click="BtnModificar_Click"/>
-            <Button x:Name="BtnNuevaRef"
-                    Content="Referencia Desconocida"
-                    Width="150"
-                    Click="BtnNuevaRef_Click"/>
             <Button x:Name="BtnConfirmar"
                     Content="Confirmar Recepción"
                     Width="120"

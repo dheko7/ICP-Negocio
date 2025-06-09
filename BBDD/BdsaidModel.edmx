@@ -5,6 +5,15 @@
     <!-- SSDL content -->
     <edmx:StorageModels>
     <Schema Namespace="bdsaidModel.Store" Provider="System.Data.SqlClient" ProviderManifestToken="2012" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
+        <EntityType Name="INVENTARIO">
+          <Key>
+            <PropertyRef Name="REFERENCIA" />
+            <PropertyRef Name="UBICACION" />
+          </Key>
+          <Property Name="REFERENCIA" Type="varchar" MaxLength="20" Nullable="false" />
+          <Property Name="UBICACION" Type="varchar" MaxLength="20" Nullable="false" />
+          <Property Name="CANTIDAD_DISPONIBLE" Type="int" Nullable="false" />
+        </EntityType>
         <EntityType Name="NSERIES_RECEPCIONES">
           <Key>
             <PropertyRef Name="ID_SERIE" />
@@ -328,29 +337,24 @@ warning 6002: The table/view 'bdsaid.dbo.VW_REFERENCIAS_STOCK' does not have a p
         <EntityType Name="VW_REFERENCIAS_STOCK">
           <Key>
             <PropertyRef Name="REFERENCIA" />
-            <PropertyRef Name="LLEVA_N_SERIES" />
-            <PropertyRef Name="ESTA_HABILITADA" />
-            <PropertyRef Name="STOCK_DISPONIBLE" />
+            <PropertyRef Name="UBICACION" />
+            <PropertyRef Name="CANTIDAD_DISPONIBLE" />
+            <PropertyRef Name="ID" />
           </Key>
+          <Property Name="ID" Type="int" Nullable="false" />
           <Property Name="REFERENCIA" Type="varchar" MaxLength="20" Nullable="false" />
-          <Property Name="DES_REFERENCIA" Type="varchar" MaxLength="500" />
-          <Property Name="PRECIO" Type="decimal" Precision="19" Scale="4" />
-          <Property Name="F_CREACION" Type="datetime" />
-          <Property Name="LLEVA_N_SERIES" Type="bit" Nullable="false" />
-          <Property Name="LONGITUD_N_SERIE" Type="int" />
-          <Property Name="ESTA_HABILITADA" Type="bit" Nullable="false" />
-          <Property Name="STOCK_DISPONIBLE" Type="int" Nullable="false" />
+          <Property Name="UBICACION" Type="varchar" MaxLength="20" Nullable="false" />
+          <Property Name="CANTIDAD_DISPONIBLE" Type="int" Nullable="false" />
         </EntityType>
         <!--Errors Found During Generation:
 warning 6002: The table/view 'bdsaid.dbo.VW_STOCK_DISPONIBLE' does not have a primary key defined. The key has been inferred and the definition was created as a read-only table/view.-->
         <EntityType Name="VW_STOCK_DISPONIBLE">
           <Key>
-            <PropertyRef Name="STOCK_PICADO" />
+            <PropertyRef Name="REFERENCIA" />
+            <PropertyRef Name="ID" />
           </Key>
-          <Property Name="REFERENCIA" Type="varchar" MaxLength="20" />
-          <Property Name="UBICACION" Type="varchar" MaxLength="30" />
-          <Property Name="STOCK_TOTAL" Type="int" />
-          <Property Name="STOCK_PICADO" Type="int" Nullable="false" />
+          <Property Name="ID" Type="int" Nullable="false" />
+          <Property Name="REFERENCIA" Type="varchar" MaxLength="20" Nullable="false" />
           <Property Name="STOCK_DISPONIBLE" Type="int" />
         </EntityType>
         <Association Name="FK_NSERIES_RECEPCIONES__PALETS">
@@ -557,7 +561,8 @@ warning 6002: The table/view 'bdsaid.dbo.VW_STOCK_DISPONIBLE' does not have a pr
           <Parameter Name="PETICION" Type="int" Mode="In" />
           <Parameter Name="LINEA_ID" Type="int" Mode="In" />
           <Parameter Name="CANTIDAD_PICADA" Type="int" Mode="In" />
-          <Parameter Name="UBICACION" Type="nvarchar" Mode="In" />
+          <Parameter Name="UBICACION" Type="varchar" Mode="In" />
+          <Parameter Name="REFERENCIA" Type="varchar" Mode="In" />
           <Parameter Name="NUMERO_SERIE" Type="nvarchar" Mode="In" />
           <Parameter Name="USUARIO" Type="nvarchar" Mode="In" />
         </Function>
@@ -575,6 +580,7 @@ warning 6002: The table/view 'bdsaid.dbo.VW_STOCK_DISPONIBLE' does not have a pr
         </Function>
         <Function Name="sp_upgraddiagrams" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo" />
         <EntityContainer Name="bdsaidModelStoreContainer">
+          <EntitySet Name="INVENTARIO" EntityType="Self.INVENTARIO" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="NSERIES_RECEPCIONES" EntityType="Self.NSERIES_RECEPCIONES" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="NSERIES_SEGUIMIENTO" EntityType="Self.NSERIES_SEGUIMIENTO" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="ORDEN_SALIDA_CAB" EntityType="Self.ORDEN_SALIDA_CAB" Schema="dbo" store:Type="Tables" />
@@ -598,22 +604,16 @@ warning 6002: The table/view 'bdsaid.dbo.VW_STOCK_DISPONIBLE' does not have a pr
           <EntitySet Name="V_SQL_TABLAS" EntityType="Self.V_SQL_TABLAS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="VW_REFERENCIAS_STOCK" EntityType="Self.VW_REFERENCIAS_STOCK" store:Type="Views" store:Schema="dbo">
             <DefiningQuery>SELECT 
+    [VW_REFERENCIAS_STOCK].[ID] AS [ID], 
     [VW_REFERENCIAS_STOCK].[REFERENCIA] AS [REFERENCIA], 
-    [VW_REFERENCIAS_STOCK].[DES_REFERENCIA] AS [DES_REFERENCIA], 
-    [VW_REFERENCIAS_STOCK].[PRECIO] AS [PRECIO], 
-    [VW_REFERENCIAS_STOCK].[F_CREACION] AS [F_CREACION], 
-    [VW_REFERENCIAS_STOCK].[LLEVA_N_SERIES] AS [LLEVA_N_SERIES], 
-    [VW_REFERENCIAS_STOCK].[LONGITUD_N_SERIE] AS [LONGITUD_N_SERIE], 
-    [VW_REFERENCIAS_STOCK].[ESTA_HABILITADA] AS [ESTA_HABILITADA], 
-    [VW_REFERENCIAS_STOCK].[STOCK_DISPONIBLE] AS [STOCK_DISPONIBLE]
+    [VW_REFERENCIAS_STOCK].[UBICACION] AS [UBICACION], 
+    [VW_REFERENCIAS_STOCK].[CANTIDAD_DISPONIBLE] AS [CANTIDAD_DISPONIBLE]
     FROM [dbo].[VW_REFERENCIAS_STOCK] AS [VW_REFERENCIAS_STOCK]</DefiningQuery>
           </EntitySet>
           <EntitySet Name="VW_STOCK_DISPONIBLE" EntityType="Self.VW_STOCK_DISPONIBLE" store:Type="Views" store:Schema="dbo">
             <DefiningQuery>SELECT 
+    [VW_STOCK_DISPONIBLE].[ID] AS [ID], 
     [VW_STOCK_DISPONIBLE].[REFERENCIA] AS [REFERENCIA], 
-    [VW_STOCK_DISPONIBLE].[UBICACION] AS [UBICACION], 
-    [VW_STOCK_DISPONIBLE].[STOCK_TOTAL] AS [STOCK_TOTAL], 
-    [VW_STOCK_DISPONIBLE].[STOCK_PICADO] AS [STOCK_PICADO], 
     [VW_STOCK_DISPONIBLE].[STOCK_DISPONIBLE] AS [STOCK_DISPONIBLE]
     FROM [dbo].[VW_STOCK_DISPONIBLE] AS [VW_STOCK_DISPONIBLE]</DefiningQuery>
           </EntitySet>
@@ -1013,32 +1013,6 @@ warning 6002: The table/view 'bdsaid.dbo.VW_STOCK_DISPONIBLE' does not have a pr
           <Property Name="TIPO" Type="String" MaxLength="128" FixedLength="false" Unicode="true" />
           <Property Name="DIMENSION" Type="Int32" />
         </EntityType>
-        <EntityType Name="VW_REFERENCIAS_STOCK">
-          <Key>
-            <PropertyRef Name="REFERENCIA" />
-            <PropertyRef Name="LLEVA_N_SERIES" />
-            <PropertyRef Name="ESTA_HABILITADA" />
-            <PropertyRef Name="STOCK_DISPONIBLE" />
-          </Key>
-          <Property Name="REFERENCIA" Type="String" MaxLength="20" FixedLength="false" Unicode="false" Nullable="false" />
-          <Property Name="DES_REFERENCIA" Type="String" MaxLength="500" FixedLength="false" Unicode="false" />
-          <Property Name="PRECIO" Type="Decimal" Precision="19" Scale="4" />
-          <Property Name="F_CREACION" Type="DateTime" Precision="3" />
-          <Property Name="LLEVA_N_SERIES" Type="Boolean" Nullable="false" />
-          <Property Name="LONGITUD_N_SERIE" Type="Int32" />
-          <Property Name="ESTA_HABILITADA" Type="Boolean" Nullable="false" />
-          <Property Name="STOCK_DISPONIBLE" Type="Int32" Nullable="false" />
-        </EntityType>
-        <EntityType Name="VW_STOCK_DISPONIBLE">
-          <Key>
-            <PropertyRef Name="STOCK_PICADO" />
-          </Key>
-          <Property Name="REFERENCIA" Type="String" MaxLength="20" FixedLength="false" Unicode="false" />
-          <Property Name="UBICACION" Type="String" MaxLength="30" FixedLength="false" Unicode="false" />
-          <Property Name="STOCK_TOTAL" Type="Int32" />
-          <Property Name="STOCK_PICADO" Type="Int32" Nullable="false" />
-          <Property Name="STOCK_DISPONIBLE" Type="Int32" />
-        </EntityType>
         <Association Name="FK_NSERIES_RECEPCIONES__PALETS">
           <End Role="PALETS" Type="Self.PALET" Multiplicity="1" />
           <End Role="NSERIES_RECEPCIONES" Type="Self.NSERIES_RECEPCIONES" Multiplicity="*" />
@@ -1204,8 +1178,6 @@ warning 6002: The table/view 'bdsaid.dbo.VW_STOCK_DISPONIBLE' does not have a pr
           <EntitySet Name="V_SQL_FICHEROS" EntityType="Self.V_SQL_FICHEROS" />
           <EntitySet Name="V_SQL_INDICES_FRAGMENTACION" EntityType="Self.V_SQL_INDICES_FRAGMENTACION" />
           <EntitySet Name="V_SQL_TABLAS" EntityType="Self.V_SQL_TABLAS" />
-          <EntitySet Name="VW_REFERENCIAS_STOCK" EntityType="Self.VW_REFERENCIAS_STOCK" />
-          <EntitySet Name="VW_STOCK_DISPONIBLE" EntityType="Self.VW_STOCK_DISPONIBLE" />
           <AssociationSet Name="FK_NSERIES_RECEPCIONES__PALETS" Association="Self.FK_NSERIES_RECEPCIONES__PALETS">
             <End Role="PALETS" EntitySet="PALETS" />
             <End Role="NSERIES_RECEPCIONES" EntitySet="NSERIES_RECEPCIONES" />
@@ -1299,6 +1271,7 @@ warning 6002: The table/view 'bdsaid.dbo.VW_STOCK_DISPONIBLE' does not have a pr
             <Parameter Name="LINEA_ID" Mode="In" Type="Int32" />
             <Parameter Name="CANTIDAD_PICADA" Mode="In" Type="Int32" />
             <Parameter Name="UBICACION" Mode="In" Type="String" />
+            <Parameter Name="REFERENCIA" Mode="In" Type="String" />
             <Parameter Name="NUMERO_SERIE" Mode="In" Type="String" />
             <Parameter Name="USUARIO" Mode="In" Type="String" />
           </FunctionImport>
@@ -1310,7 +1283,7 @@ warning 6002: The table/view 'bdsaid.dbo.VW_STOCK_DISPONIBLE' does not have a pr
           <FunctionImport Name="sp_upgraddiagrams" />
           <EntitySet Name="PROVEEDORES" EntityType="bdsaidModel.PROVEEDORE" />
           <FunctionImport Name="SP_ASIGNAR_PEDIDO">
-            <Parameter Name="PETICION" Mode="In" Type="Int32" />
+          <Parameter Name="PETICION" Mode="In" Type="Int32" />
           </FunctionImport>
           <FunctionImport Name="SP_REGISTRAR_NSERIE">
             <Parameter Name="PETICION" Mode="In" Type="Int32" />
@@ -1319,6 +1292,9 @@ warning 6002: The table/view 'bdsaid.dbo.VW_STOCK_DISPONIBLE' does not have a pr
             <Parameter Name="USUARIO" Mode="In" Type="String" />
             <Parameter Name="REF" Mode="In" Type="String" />
           </FunctionImport>
+          <EntitySet Name="INVENTARIOs" EntityType="bdsaidModel.INVENTARIO" />
+          <EntitySet Name="VW_STOCK_DISPONIBLE" EntityType="bdsaidModel.VW_STOCK_DISPONIBLE" />
+          <EntitySet Name="VW_REFERENCIAS_STOCK" EntityType="bdsaidModel.VW_REFERENCIAS_STOCK" />
         </EntityContainer>
         <ComplexType Name="sp_helpdiagramdefinition_Result">
           <Property Type="Int32" Name="version" Nullable="true" />
@@ -1337,6 +1313,36 @@ warning 6002: The table/view 'bdsaid.dbo.VW_STOCK_DISPONIBLE' does not have a pr
           </Key>
           <Property Name="CodigoProveedor" Type="String" Nullable="false" MaxLength="20" FixedLength="false" Unicode="false" />
           <Property Name="NombreProveedor" Type="String" Nullable="false" MaxLength="100" FixedLength="false" Unicode="false" />
+        </EntityType>
+        <EntityType Name="INVENTARIO">
+          <Key>
+            <PropertyRef Name="REFERENCIA" />
+            <PropertyRef Name="UBICACION" />
+          </Key>
+          <Property Name="REFERENCIA" Type="String" Nullable="false" MaxLength="20" FixedLength="false" Unicode="false" />
+          <Property Name="UBICACION" Type="String" Nullable="false" MaxLength="20" FixedLength="false" Unicode="false" />
+          <Property Name="CANTIDAD_DISPONIBLE" Type="Int32" Nullable="false" />
+        </EntityType>
+        <EntityType Name="VW_STOCK_DISPONIBLE">
+          <Key>
+            <PropertyRef Name="REFERENCIA" />
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="Int32" Nullable="false" />
+          <Property Name="REFERENCIA" Type="String" Nullable="false" MaxLength="20" FixedLength="false" Unicode="false" />
+          <Property Name="STOCK_DISPONIBLE" Type="Int32" />
+        </EntityType>
+        <EntityType Name="VW_REFERENCIAS_STOCK">
+          <Key>
+            <PropertyRef Name="REFERENCIA" />
+            <PropertyRef Name="UBICACION" />
+            <PropertyRef Name="CANTIDAD_DISPONIBLE" />
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="Int32" Nullable="false" />
+          <Property Name="REFERENCIA" Type="String" Nullable="false" MaxLength="20" FixedLength="false" Unicode="false" />
+          <Property Name="UBICACION" Type="String" Nullable="false" MaxLength="20" FixedLength="false" Unicode="false" />
+          <Property Name="CANTIDAD_DISPONIBLE" Type="Int32" Nullable="false" />
         </EntityType>
       </Schema>
     </edmx:ConceptualModels>
@@ -1645,31 +1651,6 @@ warning 6002: The table/view 'bdsaid.dbo.VW_STOCK_DISPONIBLE' does not have a pr
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
-          <EntitySetMapping Name="VW_REFERENCIAS_STOCK">
-            <EntityTypeMapping TypeName="bdsaidModel.VW_REFERENCIAS_STOCK">
-              <MappingFragment StoreEntitySet="VW_REFERENCIAS_STOCK">
-                <ScalarProperty Name="REFERENCIA" ColumnName="REFERENCIA" />
-                <ScalarProperty Name="DES_REFERENCIA" ColumnName="DES_REFERENCIA" />
-                <ScalarProperty Name="PRECIO" ColumnName="PRECIO" />
-                <ScalarProperty Name="F_CREACION" ColumnName="F_CREACION" />
-                <ScalarProperty Name="LLEVA_N_SERIES" ColumnName="LLEVA_N_SERIES" />
-                <ScalarProperty Name="LONGITUD_N_SERIE" ColumnName="LONGITUD_N_SERIE" />
-                <ScalarProperty Name="ESTA_HABILITADA" ColumnName="ESTA_HABILITADA" />
-                <ScalarProperty Name="STOCK_DISPONIBLE" ColumnName="STOCK_DISPONIBLE" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
-          <EntitySetMapping Name="VW_STOCK_DISPONIBLE">
-            <EntityTypeMapping TypeName="bdsaidModel.VW_STOCK_DISPONIBLE">
-              <MappingFragment StoreEntitySet="VW_STOCK_DISPONIBLE">
-                <ScalarProperty Name="REFERENCIA" ColumnName="REFERENCIA" />
-                <ScalarProperty Name="UBICACION" ColumnName="UBICACION" />
-                <ScalarProperty Name="STOCK_TOTAL" ColumnName="STOCK_TOTAL" />
-                <ScalarProperty Name="STOCK_PICADO" ColumnName="STOCK_PICADO" />
-                <ScalarProperty Name="STOCK_DISPONIBLE" ColumnName="STOCK_DISPONIBLE" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
           <FunctionImportMapping FunctionName="bdsaidModel.Store.FN_OBTENER_SIGUIENTE_PICADA" FunctionImportName="FN_OBTENER_SIGUIENTE_PICADA">
             <ResultMapping>
               <ComplexTypeMapping TypeName="bdsaidModel.FN_OBTENER_SIGUIENTE_PICADA_Result">
@@ -1720,7 +1701,42 @@ warning 6002: The table/view 'bdsaid.dbo.VW_STOCK_DISPONIBLE' does not have a pr
           </EntitySetMapping>
           <FunctionImportMapping FunctionImportName="SP_ASIGNAR_PEDIDO" FunctionName="bdsaidModel.Store.SP_ASIGNAR_PEDIDO" />
           <FunctionImportMapping FunctionImportName="SP_REGISTRAR_NSERIE" FunctionName="bdsaidModel.Store.SP_REGISTRAR_NSERIE" />
-        </EntityContainerMapping>
+          <EntitySetMapping Name="INVENTARIOs">
+            <EntityTypeMapping TypeName="bdsaidModel.INVENTARIO">
+              <MappingFragment StoreEntitySet="INVENTARIO">
+                <ScalarProperty Name="CANTIDAD_DISPONIBLE" ColumnName="CANTIDAD_DISPONIBLE" />
+                <ScalarProperty Name="UBICACION" ColumnName="UBICACION" />
+                <ScalarProperty Name="REFERENCIA" ColumnName="REFERENCIA" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+			<!-- === VW_STOCK_DISPONIBLE === -->
+			<EntitySetMapping Name="VW_STOCK_DISPONIBLE">
+				<EntityTypeMapping TypeName="bdsaidModel.VW_STOCK_DISPONIBLE">
+					<MappingFragment StoreEntitySet="VW_STOCK_DISPONIBLE">
+						<!-- Mapea aquí **todos** los campos de clave -->
+						<ScalarProperty Name="ID"               ColumnName="ID" />
+						<ScalarProperty Name="REFERENCIA"       ColumnName="REFERENCIA" />
+						<!-- Y el resto de columnas -->
+						<ScalarProperty Name="STOCK_DISPONIBLE" ColumnName="STOCK_DISPONIBLE" />
+					</MappingFragment>
+				</EntityTypeMapping>
+			</EntitySetMapping>
+
+			<!-- === VW_REFERENCIAS_STOCK === -->
+			<EntitySetMapping Name="VW_REFERENCIAS_STOCK">
+				<EntityTypeMapping TypeName="bdsaidModel.VW_REFERENCIAS_STOCK">
+					<MappingFragment StoreEntitySet="VW_REFERENCIAS_STOCK">
+						<!-- Mapea aquí **todos** los campos de clave -->
+						<ScalarProperty Name="ID"               ColumnName="ID" />
+						<ScalarProperty Name="REFERENCIA"       ColumnName="REFERENCIA" />
+						<ScalarProperty Name="UBICACION"        ColumnName="UBICACION" />
+						<ScalarProperty Name="CANTIDAD_DISPONIBLE" ColumnName="CANTIDAD_DISPONIBLE" />
+					</MappingFragment>
+				</EntityTypeMapping>
+			</EntitySetMapping>
+
+		</EntityContainerMapping>
       </Mapping>
     </edmx:Mappings>
   </edmx:Runtime>

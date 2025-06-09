@@ -125,6 +125,9 @@
     <Compile Include="BBDD\FN_OBTENER_SIGUIENTE_PICADA_Result.cs">
       <DependentUpon>BdsaidModel.tt</DependentUpon>
     </Compile>
+    <Compile Include="BBDD\INVENTARIO.cs">
+      <DependentUpon>BdsaidModel.tt</DependentUpon>
+    </Compile>
     <Compile Include="BBDD\NSERIES_RECEPCIONES.cs">
       <DependentUpon>BdsaidModel.tt</DependentUpon>
     </Compile>
@@ -206,7 +209,6 @@
     <Compile Include="Negocio\MenuPrincipal.xaml.cs">
       <DependentUpon>MenuPrincipal.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Negocio\NotConverter.cs" />
     <Compile Include="Negocio\Palets.xaml.cs">
       <DependentUpon>Palets.xaml</DependentUpon>
     </Compile>

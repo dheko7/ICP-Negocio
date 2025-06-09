@@ -47,9 +47,10 @@ namespace ICP.BBDD
         public virtual DbSet<V_SQL_FICHEROS> V_SQL_FICHEROS { get; set; }
         public virtual DbSet<V_SQL_INDICES_FRAGMENTACION> V_SQL_INDICES_FRAGMENTACION { get; set; }
         public virtual DbSet<V_SQL_TABLAS> V_SQL_TABLAS { get; set; }
-        public virtual DbSet<VW_REFERENCIAS_STOCK> VW_REFERENCIAS_STOCK { get; set; }
-        public virtual DbSet<VW_STOCK_DISPONIBLE> VW_STOCK_DISPONIBLE { get; set; }
         public virtual DbSet<PROVEEDORE> PROVEEDORES { get; set; }
+        public virtual DbSet<INVENTARIO> INVENTARIOs { get; set; }
+        public virtual DbSet<VW_STOCK_DISPONIBLE> VW_STOCK_DISPONIBLE { get; set; }
+        public virtual DbSet<VW_REFERENCIAS_STOCK> VW_REFERENCIAS_STOCK { get; set; }
     
         [DbFunction("bdsaidEntities2", "FN_OBTENER_SIGUIENTE_PICADA")]
         public virtual IQueryable<FN_OBTENER_SIGUIENTE_PICADA_Result> FN_OBTENER_SIGUIENTE_PICADA(Nullable<int> pETICION)
@@ -185,7 +186,7 @@ namespace ICP.BBDD
             return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction<sp_helpdiagrams_Result>("sp_helpdiagrams", diagramnameParameter, owner_idParameter);
         }
     
-        public virtual int SP_MARCAR_PICADA(Nullable<int> pETICION, Nullable<int> lINEA_ID, Nullable<int> cANTIDAD_PICADA, string uBICACION, string nUMERO_SERIE, string uSUARIO)
+        public virtual int SP_MARCAR_PICADA(Nullable<int> pETICION, Nullable<int> lINEA_ID, Nullable<int> cANTIDAD_PICADA, string uBICACION, string rEFERENCIA, string nUMERO_SERIE, string uSUARIO)
         {
             var pETICIONParameter = pETICION.HasValue ?
                 new ObjectParameter("PETICION", pETICION) :
@@ -203,6 +204,10 @@ namespace ICP.BBDD
                 new ObjectParameter("UBICACION", uBICACION) :
                 new ObjectParameter("UBICACION", typeof(string));
     
+            var rEFERENCIAParameter = rEFERENCIA != null ?
+                new ObjectParameter("REFERENCIA", rEFERENCIA) :
+                new ObjectParameter("REFERENCIA", typeof(string));
+    
             var nUMERO_SERIEParameter = nUMERO_SERIE != null ?
                 new ObjectParameter("NUMERO_SERIE", nUMERO_SERIE) :
                 new ObjectParameter("NUMERO_SERIE", typeof(string));
@@ -211,7 +216,7 @@ namespace ICP.BBDD
                 new ObjectParameter("USUARIO", uSUARIO) :
                 new ObjectParameter("USUARIO", typeof(string));
     
-            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction("SP_MARCAR_PICADA", pETICIONParameter, lINEA_IDParameter, cANTIDAD_PICADAParameter, uBICACIONParameter, nUMERO_SERIEParameter, uSUARIOParameter);
+            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction("SP_MARCAR_PICADA", pETICIONParameter, lINEA_IDParameter, cANTIDAD_PICADAParameter, uBICACIONParameter, rEFERENCIAParameter, nUMERO_SERIEParameter, uSUARIOParameter);
         }
     
         public virtual int sp_renamediagram(string diagramname, Nullable<int> owner_id, string new_diagramname)

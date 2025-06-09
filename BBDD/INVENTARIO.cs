@@ -12,9 +12,8 @@ namespace ICP.BBDD
     using System;
     using System.Collections.Generic;
     
-    public partial class VW_REFERENCIAS_STOCK
+    public partial class INVENTARIO
     {
-        public int ID { get; set; }
         public string REFERENCIA { get; set; }
         public string UBICACION { get; set; }
         public int CANTIDAD_DISPONIBLE { get; set; }

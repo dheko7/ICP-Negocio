@@ -1,7 +1,5 @@
-﻿// Palets.xaml.cs
-using System;
+﻿using System;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Data.SqlClient;
 using System.Windows;
 
@@ -9,10 +7,11 @@ namespace ICP.Negocio
 {
     public partial class Palets : Window
     {
-        private ObservableCollection<Palet> palets = new ObservableCollection<Palet>();
-        private ObservableCollection<string> ubicaciones = new ObservableCollection<string>();
-        private string connectionString =
+        private const string cs =
             "Server=localhost\\SQLEXPRESS01;Database=bdsaid;Integrated Security=True;MultipleActiveResultSets=True;";
+
+        private readonly ObservableCollection<Palet> palets = new ObservableCollection<Palet>();
+        private readonly ObservableCollection<string> ubicaciones = new ObservableCollection<string>();
 
         public Palets()
         {
@@ -20,262 +19,110 @@ namespace ICP.Negocio
             PaletsGrid.ItemsSource = palets;
             cmbUbicaciones.ItemsSource = ubicaciones;
             CargarUbicaciones();
-            CargarPalets();  // Al iniciar, carga todos los palets existentes
+            CargarPalets();
         }
 
-        // **********************
-        // Se dispara cada vez que la ventana recibe el foco (por ejemplo, al volver desde “Recepciones”)
-        // **********************
-        protected override void OnActivated(EventArgs e)
+        public void CargarUbicaciones()
         {
-            base.OnActivated(e);
-            CargarUbicaciones(); // Asegura que la lista de ubicaciones esté al día
-            CargarPalets();      // Recarga todos los palets en pantalla
+            ubicaciones.Clear();
+            using (var conn = new SqlConnection(cs))
+            using (var cmd = new SqlCommand("SELECT UBICACION FROM UBICACIONES ORDER BY UBICACION", conn))
+            {
+                conn.Open();
+                using (var rdr = cmd.ExecuteReader())
+                    while (rdr.Read())
+                        ubicaciones.Add(rdr.GetString(0));
+            }
+            if (ubicaciones.Count > 0 && cmbUbicaciones.SelectedIndex == -1)
+                cmbUbicaciones.SelectedIndex = 0;
         }
 
-        private void CargarUbicaciones()
-        {
-            try
-            {
-                using (SqlConnection conn = new SqlConnection(connectionString))
-                {
-                    conn.Open();
-                    using (SqlCommand cmd = new SqlCommand("SELECT UBICACION FROM UBICACIONES", conn))
-                    using (SqlDataReader reader = cmd.ExecuteReader())
-                    {
-                        ubicaciones.Clear();
-                        while (reader.Read())
-                        {
-                            ubicaciones.Add(reader.GetString(0));
-                        }
-                    }
-                }
-
-                if (ubicaciones.Count > 0 && cmbUbicaciones.SelectedIndex == -1)
-                    cmbUbicaciones.SelectedIndex = 0;
-            }
-            catch (SqlException ex)
-            {
-                MessageBox.Show($"Error al cargar ubicaciones: {ex.Message}", "Error de Base de Datos");
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Error inesperado al cargar ubicaciones: {ex.Message}", "Error General");
-            }
-        }
-
-        // **********************
-        // Este método lee **todos** los pallets de la tabla PALETS y los muestra.
-        // **********************
-        private void CargarPalets(string filtroAlbaran = null, string filtroReferencia = null)
+        // **AHORA PÚBLICO** para que Recepciones pueda llamar p.CargarPalets()
+        public void CargarPalets(string fA = null, string fR = null)
         {
             palets.Clear();
-            try
+            using (var conn = new SqlConnection(cs))
             {
-                using (SqlConnection conn = new SqlConnection(connectionString))
+                conn.Open();
+                var sql = "SELECT PALET,REFERENCIA,CANTIDAD,ALBARAN_RECEPCION,UBICACION,ESTATUS_PALET FROM PALETS";
+                bool filA = !string.IsNullOrWhiteSpace(fA),
+                     filR = !string.IsNullOrWhiteSpace(fR);
+                if (filA) sql += " WHERE ALBARAN_RECEPCION LIKE @fA";
+                if (filR) sql += filA
+                    ? " AND REFERENCIA LIKE @fR"
+                    : " WHERE REFERENCIA LIKE @fR";
+
+                using (var cmd = new SqlCommand(sql, conn))
                 {
-                    conn.Open();
-
-                    string query = @"
-                        SELECT 
-                            PALET, 
-                            REFERENCIA, 
-                            CANTIDAD, 
-                            ALBARAN_RECEPCION, 
-                            UBICACION, 
-                            ESTATUS_PALET
-                        FROM PALETS";
-
-                    bool hasFilter = false;
-                    if (!string.IsNullOrEmpty(filtroAlbaran))
+                    if (filA) cmd.Parameters.AddWithValue("@fA", "%" + fA + "%");
+                    if (filR) cmd.Parameters.AddWithValue("@fR", "%" + fR + "%");
+                    using (var rdr = cmd.ExecuteReader())
                     {
-                        query += " WHERE ALBARAN_RECEPCION LIKE @FiltroAlbaran";
-                        hasFilter = true;
-                    }
-                    if (!string.IsNullOrEmpty(filtroReferencia))
-                    {
-                        query += hasFilter
-                            ? " AND REFERENCIA LIKE @FiltroReferencia"
-                            : " WHERE REFERENCIA LIKE @FiltroReferencia";
-                    }
-
-                    using (SqlCommand cmd = new SqlCommand(query, conn))
-                    {
-                        if (!string.IsNullOrEmpty(filtroAlbaran))
-                            cmd.Parameters.AddWithValue("@FiltroAlbaran", "%" + filtroAlbaran + "%");
-                        if (!string.IsNullOrEmpty(filtroReferencia))
-                            cmd.Parameters.AddWithValue("@FiltroReferencia", "%" + filtroReferencia + "%");
-
-                        using (SqlDataReader reader = cmd.ExecuteReader())
-                        {
-                            while (reader.Read())
+                        while (rdr.Read())
+                            palets.Add(new Palet
                             {
-                                palets.Add(new Palet
-                                {
-                                    PaletId = reader.GetInt32(reader.GetOrdinal("PALET")),
-                                    Referencia = reader.GetString(reader.GetOrdinal("REFERENCIA")),
-                                    Cantidad = reader.GetInt32(reader.GetOrdinal("CANTIDAD")),
-                                    Albaran = reader.GetString(reader.GetOrdinal("ALBARAN_RECEPCION")),
-                                    Ubicacion = reader.GetString(reader.GetOrdinal("UBICACION")),
-                                    EstatusPalet = reader.GetInt32(reader.GetOrdinal("ESTATUS_PALET"))
-                                });
-                            }
-
-                            if (palets.Count == 0)
-                            {
-                                MessageBox.Show("No se encontraron palets.", "Información");
-                            }
-                        }
+                                PaletId = rdr.GetInt32(0),
+                                Referencia = rdr.GetString(1),
+                                Cantidad = rdr.GetInt32(2),
+                                Albaran = rdr.IsDBNull(3) ? "" : rdr.GetString(3),
+                                Ubicacion = rdr.IsDBNull(4) ? "" : rdr.GetString(4),
+                                EstatusPalet = rdr.GetInt32(5)
+                            });
                     }
                 }
-            }
-            catch (SqlException ex)
-            {
-                MessageBox.Show($"Error al cargar palets: {ex.Message}", "Error de Base de Datos");
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Error inesperado al cargar palets: {ex.Message}", "Error General");
             }
         }
 
         private void BtnFiltrar_Click(object sender, RoutedEventArgs e)
-        {
-            string filtroAlbaran = txtFiltroAlbaran.Text.Trim();
-            string filtroReferencia = txtFiltroReferencia.Text.Trim();
-            CargarPalets(filtroAlbaran, filtroReferencia);
-        }
+            => CargarPalets(txtFiltroAlbaran.Text.Trim(), txtFiltroReferencia.Text.Trim());
 
         private void BtnLimpiarFiltro_Click(object sender, RoutedEventArgs e)
         {
-            txtFiltroAlbaran.Text = "";
-            txtFiltroReferencia.Text = "";
+            txtFiltroAlbaran.Clear();
+            txtFiltroReferencia.Clear();
             CargarPalets();
         }
 
         private void BtnMover_Click(object sender, RoutedEventArgs e)
         {
-            if (!(PaletsGrid.SelectedItem is Palet palet))
+            if (!(PaletsGrid.SelectedItem is Palet p)) return;
+            if (p.EstatusPalet >= 3)
             {
-                MessageBox.Show("Por favor, seleccione un palet para mover.", "Selección Requerida");
+                MessageBox.Show("No se puede mover un palet enviado.", "Error");
                 return;
             }
+            var nueva = cmbUbicaciones.SelectedItem as string;
+            if (nueva == p.Ubicacion) return;
 
-            // Validar que el pallet no esté en estados que no permiten movimiento (4, 5, 6)
-            if (palet.EstatusPalet == 4 || palet.EstatusPalet == 5 || palet.EstatusPalet == 6)
+            using (var conn = new SqlConnection(cs))
+            using (var cmd = new SqlCommand("PA_MOVER_PALET", conn))
             {
-                string statusDesc;
-                switch (palet.EstatusPalet)
-                {
-                    case 4: statusDesc = "Ejecutado"; break;
-                    case 5: statusDesc = "Revisado"; break;
-                    case 6: statusDesc = "Enviado"; break;
-                    default: statusDesc = "Desconocido"; break;
-                }
-                MessageBox.Show($"No se puede mover un palet en estado '{statusDesc}'.", "Estado No Permitido");
-                return;
+                cmd.CommandType = System.Data.CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@PaletId", p.PaletId);
+                cmd.Parameters.AddWithValue("@NuevaUbicacion", nueva);
+                conn.Open();
+                cmd.ExecuteNonQuery();
             }
 
-            if (cmbUbicaciones.SelectedItem == null)
-            {
-                MessageBox.Show("Por favor, seleccione una nueva ubicación.", "Selección Requerida");
-                return;
-            }
-
-            string nuevaUbicacion = cmbUbicaciones.SelectedItem.ToString();
-            if (nuevaUbicacion == palet.Ubicacion)
-            {
-                MessageBox.Show("La nueva ubicación es la misma que la actual. Seleccione otra.", "Validación");
-                return;
-            }
-
-            try
-            {
-                using (SqlConnection conn = new SqlConnection(connectionString))
-                {
-                    conn.Open();
-                    using (SqlCommand cmd = new SqlCommand("PA_MOVER_PALET", conn))
-                    {
-                        cmd.CommandType = System.Data.CommandType.StoredProcedure;
-                        cmd.Parameters.AddWithValue("@PaletId", palet.PaletId);
-                        cmd.Parameters.AddWithValue("@NuevaUbicacion", nuevaUbicacion);
-                        cmd.ExecuteNonQuery();
-                    }
-                }
-                palet.Ubicacion = nuevaUbicacion;
-                PaletsGrid.Items.Refresh();
-                MessageBox.Show($"Palet {palet.PaletId} movido a '{nuevaUbicacion}' correctamente.", "Éxito");
-            }
-            catch (SqlException ex)
-            {
-                MessageBox.Show($"Error al mover palet: {ex.Message}", "Error de Base de Datos");
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Error inesperado: {ex.Message}", "Error General");
-            }
+            p.Ubicacion = nueva;
+            PaletsGrid.Items.Refresh();
+            MessageBox.Show("Palet movido correctamente.", "Éxito");
         }
 
         private void BtnVolver_Click(object sender, RoutedEventArgs e)
         {
             new MenuPrincipal().Show();
-            this.Close();
+            Close();
         }
     }
 
-    // **********************
-    // POCO que representa cada fila de PALETS en el DataGrid.
-    // Implementa INotifyPropertyChanged para refrescar cambios.
-    // **********************
-    public class Palet : INotifyPropertyChanged
+    public class Palet
     {
-        private int paletId;
-        private string referencia;
-        private int cantidad;
-        private string albaran;
-        private string ubicacion;
-        private int estatusPalet;
-
-        public int PaletId
-        {
-            get { return paletId; }
-            set { paletId = value; OnPropertyChanged(nameof(PaletId)); }
-        }
-
-        public string Referencia
-        {
-            get { return referencia; }
-            set { referencia = value; OnPropertyChanged(nameof(Referencia)); }
-        }
-
-        public int Cantidad
-        {
-            get { return cantidad; }
-            set { cantidad = value; OnPropertyChanged(nameof(Cantidad)); }
-        }
-
-        public string Albaran
-        {
-            get { return albaran; }
-            set { albaran = value; OnPropertyChanged(nameof(Albaran)); }
-        }
-
-        public string Ubicacion
-        {
-            get { return ubicacion; }
-            set { ubicacion = value; OnPropertyChanged(nameof(Ubicacion)); }
-        }
-
-        public int EstatusPalet
-        {
-            get { return estatusPalet; }
-            set { estatusPalet = value; OnPropertyChanged(nameof(EstatusPalet)); }
-        }
-
-        public event PropertyChangedEventHandler PropertyChanged;
-        protected void OnPropertyChanged(string propiedad)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propiedad));
-        }
+        public int PaletId { get; set; }
+        public string Referencia { get; set; }
+        public int Cantidad { get; set; }
+        public string Albaran { get; set; }
+        public string Ubicacion { get; set; }
+        public int EstatusPalet { get; set; }
     }
 }

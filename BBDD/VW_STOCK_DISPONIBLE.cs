@@ -14,10 +14,8 @@ namespace ICP.BBDD
     
     public partial class VW_STOCK_DISPONIBLE
     {
+        public int ID { get; set; }
         public string REFERENCIA { get; set; }
-        public string UBICACION { get; set; }
-        public Nullable<int> STOCK_TOTAL { get; set; }
-        public int STOCK_PICADO { get; set; }
         public Nullable<int> STOCK_DISPONIBLE { get; set; }
     }
 }

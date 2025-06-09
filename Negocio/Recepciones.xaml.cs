@@ -1,7 +1,12 @@
-﻿using System;
+﻿// ******************************
+//  Recepciones.xaml.cs  –  versión compatible con C# 7.3
+// ******************************
+using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Data;
 using System.Data.SqlClient;
+using System.Linq;                    // ← necesario para Any()
 using System.Net;
 using System.Net.Mail;
 using System.Windows;
@@ -11,562 +16,356 @@ namespace ICP.Negocio
 {
     public partial class Recepciones : Window
     {
-        // Colección enlazada al DataGrid para mostrar las líneas de RECEPCIONES_LIN
-        private ObservableCollection<RecepcionLinea> lineas = new ObservableCollection<RecepcionLinea>();
-
-        // Bandera para saber si la cabecera ya fue confirmada (ESTATUS_RECEPCION = 3)
+        // ----------------  CAMPOS ----------------
+        private readonly ObservableCollection<RecepcionLinea> lineas = new ObservableCollection<RecepcionLinea>();
         private bool reciboConfirmado = false;
-
-        // Cadena de conexión a la base de datos (ajusta si fuera necesario)
-        private readonly string cs =
+        private const string connectionString =
             "Server=localhost\\SQLEXPRESS01;Database=bdsaid;Integrated Security=True;MultipleActiveResultSets=True;";
+        private const int MAX_ALBARAN = 12;   // longitud real de la columna ALBARAN
 
+        // --------------  CTOR  --------------------
         public Recepciones()
         {
             InitializeComponent();
-            // Enlaza el DataGrid al ObservableCollection para refrescar automáticamente
             RecepcionesGrid.ItemsSource = lineas;
         }
 
-        // **********************
-        // 1) Se ejecuta cuando la ventana termina de cargarse
-        // **********************
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             CargarAlbaranes();
             CargarUbicaciones();
         }
 
-        // **********************
-        // 2) Carga todos los albaranes existentes y los agrega al ComboBox
-        // **********************
+        // --------------  Cargar combos  --------------------
         private void CargarAlbaranes()
         {
             cmbAlbaranes.Items.Clear();
             try
             {
-                using (var conn = new SqlConnection(cs))
+                using (SqlConnection conn = new SqlConnection(connectionString))
                 {
                     conn.Open();
-                    using (var cmd = new SqlCommand(
+                    using (SqlCommand cmd = new SqlCommand(
                         "SELECT ALBARAN FROM RECEPCIONES_CAB ORDER BY F_CREACION DESC", conn))
-                    using (var rdr = cmd.ExecuteReader())
+                    using (SqlDataReader rdr = cmd.ExecuteReader())
                     {
                         while (rdr.Read())
-                        {
                             cmbAlbaranes.Items.Add(rdr.GetString(0));
-                        }
                     }
                 }
-
                 if (cmbAlbaranes.Items.Count > 0)
                     cmbAlbaranes.SelectedIndex = 0;
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error al cargar lista de albaranes:\n" + ex.Message,
-                                "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show("Error al cargar albaranes:\n" + ex.Message);
             }
         }
 
-        // **********************
-        // 3) Carga todas las ubicaciones de la tabla UBICACIONES en el ComboBox cmbUbicaciones
-        // **********************
         private void CargarUbicaciones()
         {
             cmbUbicaciones.Items.Clear();
             try
             {
-                using (var conn = new SqlConnection(cs))
+                using (SqlConnection conn = new SqlConnection(connectionString))
                 {
                     conn.Open();
-                    using (var cmd = new SqlCommand("SELECT UBICACION FROM UBICACIONES", conn))
-                    using (var rdr = cmd.ExecuteReader())
+                    using (SqlCommand cmd = new SqlCommand("SELECT UBICACION FROM UBICACIONES", conn))
+                    using (SqlDataReader rdr = cmd.ExecuteReader())
                     {
                         while (rdr.Read())
                             cmbUbicaciones.Items.Add(rdr.GetString(0));
                     }
                 }
-                if (cmbUbicaciones.Items.Count > 0)
+                if (cmbUbicaciones.Items.Count > 0 && cmbUbicaciones.SelectedIndex == -1)
                     cmbUbicaciones.SelectedIndex = 0;
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error al cargar ubicaciones:\n" + ex.Message,
-                                "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show("Error al cargar ubicaciones:\n" + ex.Message);
             }
         }
 
-        // **********************
-        // 4) “Nueva Recepción” – Inserta la cabecera en RECEPCIONES_CAB si el albarán no existe.
-        // **********************
+        // --------------  NUEVA RECEPCION  --------------------
         private void BtnNuevaRecepcion_Click(object sender, RoutedEventArgs e)
         {
-            string albaran = (cmbAlbaranes.Text ?? "").Trim();
-            if (string.IsNullOrWhiteSpace(albaran))
+            string albaranRaw = (cmbAlbaranes.Text ?? string.Empty).Trim();
+            if (string.IsNullOrWhiteSpace(albaranRaw))
             {
-                MessageBox.Show("Ingresa número de albarán.", "Error",
-                                MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("Ingresa número de albarán.");
                 return;
             }
+            if (albaranRaw.Length > MAX_ALBARAN)
+            {
+                MessageBox.Show("El albarán excede la longitud máxima de " + MAX_ALBARAN + " caracteres. Se recortará.");
+                albaranRaw = albaranRaw.Substring(0, MAX_ALBARAN);
+            }
+            string albaran = albaranRaw;
 
             try
             {
-                using (var conn = new SqlConnection(cs))
+                using (SqlConnection conn = new SqlConnection(connectionString))
                 {
                     conn.Open();
-                    // Verifico si YA existe esa cabecera de albarán
-                    var exists = new SqlCommand(
-                        "SELECT COUNT(*) FROM RECEPCIONES_CAB WHERE ALBARAN = @a", conn);
-                    exists.Parameters.AddWithValue("@a", albaran);
-                    if ((int)exists.ExecuteScalar() > 0)
+                    // Comprueba existencia
+                    using (SqlCommand exists = new SqlCommand(
+                        "SELECT COUNT(*) FROM RECEPCIONES_CAB WHERE ALBARAN=@a", conn))
                     {
-                        MessageBox.Show("El albarán ya existe.", "Información",
-                                        MessageBoxButton.OK, MessageBoxImage.Information);
-                        return;
+                        exists.Parameters.Add("@a", SqlDbType.VarChar, MAX_ALBARAN).Value = albaran;
+                        if ((int)exists.ExecuteScalar() > 0)
+                        {
+                            MessageBox.Show("El albarán ya existe.");
+                            return;
+                        }
                     }
-                    // Insertar la nueva cabecera con ESTATUS_RECEPCION = 0 (por defecto)
-                    var ins = new SqlCommand(
-                        "INSERT INTO RECEPCIONES_CAB(ALBARAN, PROVEEDOR, F_CREACION, ESTATUS_RECEPCION, CODIGO_CLIENTE) " +
-                        "VALUES(@a, 'PROV002', GETDATE(), 0, 'CLI002')", conn);
-                    ins.Parameters.AddWithValue("@a", albaran);
-                    ins.ExecuteNonQuery();
+                    // Inserta cabecera
+                    using (SqlCommand ins = new SqlCommand(@"
+                        INSERT INTO RECEPCIONES_CAB
+                          (ALBARAN,PROVEEDOR,F_CREACION,ESTATUS_RECEPCION,CODIGO_CLIENTE)
+                        VALUES(@a,'PROV002',GETDATE(),0,'CLI002')", conn))
+                    {
+                        ins.Parameters.Add("@a", SqlDbType.VarChar, MAX_ALBARAN).Value = albaran;
+                        ins.ExecuteNonQuery();
+                    }
                 }
-
-                MessageBox.Show("Recepción creada.", "Éxito",
-                                MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show("Recepción creada.");
                 CargarAlbaranes();
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error al crear recepción:\n" + ex.Message, "Error",
-                                MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show("Error al crear recepción:\n" + ex.Message);
             }
         }
 
-        // **********************
-        // 5) “Cargar” – Obtiene todas las líneas de RECEPCIONES_LIN para el albarán seleccionado
-        // **********************
-        private void BtnCargar_Click(object sender, RoutedEventArgs e)
-        {
-            CargarRecepciones();
-        }
+        // --------------  CARGAR RECEPCION  --------------------
+        private void BtnCargar_Click(object sender, RoutedEventArgs e) => CargarRecepciones();
 
-        // **********************
-        // 6) Cargar las líneas de RECEPCIONES_LIN y ver si la cabecera ya está confirmada
-        // **********************
         private void CargarRecepciones()
         {
             lineas.Clear();
             reciboConfirmado = false;
 
-            string albaran = (cmbAlbaranes.Text ?? "").Trim();
+            string albaran = (cmbAlbaranes.Text ?? string.Empty).Trim();
             if (string.IsNullOrWhiteSpace(albaran))
             {
-                MessageBox.Show("Ingresa número de albarán.", "Error",
-                                MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("Ingresa número de albarán.");
                 return;
             }
 
             try
             {
-                using (var conn = new SqlConnection(cs))
+                // Lee líneas existentes
+                using (SqlConnection conn = new SqlConnection(connectionString))
                 {
                     conn.Open();
-
-                    // Verificar que exista la cabecera de RECEPCIONES_CAB
-                    var cnt = new SqlCommand(
-                        "SELECT COUNT(*) FROM RECEPCIONES_CAB WHERE ALBARAN = @a", conn);
-                    cnt.Parameters.AddWithValue("@a", albaran);
-                    if ((int)cnt.ExecuteScalar() == 0)
+                    using (SqlCommand cmd = new SqlCommand(@"
+                        SELECT rl.LINEA, rl.REFERENCIA, r.DES_REFERENCIA,
+                               rl.CANTIDAD_BUENA, rl.CANTIDAD_MALA, rl.NUMERO_SERIE, rl.UBICACION,
+                               p.ESTATUS_PALET, rl.PALETID
+                          FROM RECEPCIONES_LIN rl
+                          LEFT JOIN REFERENCIAS r ON rl.REFERENCIA = r.REFERENCIA
+                          LEFT JOIN PALETS      p ON rl.PALETID    = p.PALET
+                         WHERE rl.ALBARAN = @a
+                         ORDER BY rl.LINEA", conn))
                     {
-                        MessageBox.Show("Albarán no encontrado.", "Error",
-                                        MessageBoxButton.OK, MessageBoxImage.Warning);
-                        return;
-                    }
-
-                    // Recupero todas las líneas de RECEPCIONES_LIN, junto con DESCRIPCIÓN y ESTATUS_PALET y PALETID
-                    var cmd = new SqlCommand(@"
-                        SELECT 
-                            rl.LINEA,
-                            rl.REFERENCIA,
-                            r.DES_REFERENCIA    AS DESCRIPCION,
-                            rl.CANTIDAD_BUENA,
-                            rl.CANTIDAD_MALA,
-                            rl.NUMERO_SERIE,
-                            rl.UBICACION,
-                            p.ESTATUS_PALET,
-                            rl.PALETID
-                        FROM RECEPCIONES_LIN rl
-                        LEFT JOIN REFERENCIAS r ON rl.REFERENCIA = r.REFERENCIA
-                        LEFT JOIN PALETS       p ON rl.PALETID = p.PALET
-                        WHERE rl.ALBARAN = @a", conn);
-                    cmd.Parameters.AddWithValue("@a", albaran);
-
-                    using (var rdr = cmd.ExecuteReader())
-                    {
-                        while (rdr.Read())
+                        cmd.Parameters.AddWithValue("@a", albaran);
+                        using (SqlDataReader rdr = cmd.ExecuteReader())
                         {
-                            lineas.Add(new RecepcionLinea
+                            while (rdr.Read())
                             {
-                                Albaran = albaran,
-                                Linea = rdr.GetInt32(rdr.GetOrdinal("LINEA")),
-                                Referencia = rdr.GetString(rdr.GetOrdinal("REFERENCIA")),
-                                Descripcion = rdr.IsDBNull(rdr.GetOrdinal("DESCRIPCION"))
-                                                  ? "(Sin descripción)"
-                                                  : rdr.GetString(rdr.GetOrdinal("DESCRIPCION")),
-                                CantidadBuena = rdr.IsDBNull(rdr.GetOrdinal("CANTIDAD_BUENA"))
-                                                  ? 0
-                                                  : rdr.GetInt32(rdr.GetOrdinal("CANTIDAD_BUENA")),
-                                CantidadMala = rdr.IsDBNull(rdr.GetOrdinal("CANTIDAD_MALA"))
-                                                  ? 0
-                                                  : rdr.GetInt32(rdr.GetOrdinal("CANTIDAD_MALA")),
-                                NumeroSerie = rdr.IsDBNull(rdr.GetOrdinal("NUMERO_SERIE"))
-                                                  ? ""
-                                                  : rdr.GetString(rdr.GetOrdinal("NUMERO_SERIE")),
-                                Ubicacion = rdr.IsDBNull(rdr.GetOrdinal("UBICACION"))
-                                                  ? ""
-                                                  : rdr.GetString(rdr.GetOrdinal("UBICACION")),
-                                EstatusPalet = rdr.IsDBNull(rdr.GetOrdinal("ESTATUS_PALET"))
-                                                  ? 0
-                                                  : rdr.GetInt32(rdr.GetOrdinal("ESTATUS_PALET")),
-                                PaletId = rdr.IsDBNull(rdr.GetOrdinal("PALETID"))
-                                                  ? 0
-                                                  : rdr.GetInt32(rdr.GetOrdinal("PALETID"))
-                            });
+                                lineas.Add(new RecepcionLinea
+                                {
+                                    Albaran = albaran,
+                                    Linea = rdr.GetInt32(0),
+                                    Referencia = rdr.GetString(1),
+                                    Descripcion = rdr.IsDBNull(2) ? "(Sin descripción)" : rdr.GetString(2),
+                                    CantidadBuena = rdr.IsDBNull(3) ? 0 : rdr.GetInt32(3),
+                                    CantidadMala = rdr.IsDBNull(4) ? 0 : rdr.GetInt32(4),
+                                    NumeroSerie = rdr.IsDBNull(5) ? "" : rdr.GetString(5),
+                                    Ubicacion = rdr.IsDBNull(6) ? "" : rdr.GetString(6),
+                                    EstatusPalet = rdr.IsDBNull(7) ? 0 : rdr.GetInt32(7),
+                                    PaletId = rdr.IsDBNull(8) ? 0 : rdr.GetInt32(8)
+                                });
+                            }
                         }
                     }
-
-                    // Compruebo si la cabecera ya fue confirmada (ESTATUS_RECEPCION = 3)
-                    var st = new SqlCommand(
-                        "SELECT ESTATUS_RECEPCION FROM RECEPCIONES_CAB WHERE ALBARAN = @a", conn);
-                    st.Parameters.AddWithValue("@a", albaran);
-                    reciboConfirmado = ((int)st.ExecuteScalar() == 3);
+                    // Comprueba si ya confirmada
+                    using (SqlCommand st = new SqlCommand(
+                        "SELECT ESTATUS_RECEPCION FROM RECEPCIONES_CAB WHERE ALBARAN=@a", conn))
+                    {
+                        st.Parameters.AddWithValue("@a", albaran);
+                        reciboConfirmado = ((int)st.ExecuteScalar() == 3);
+                    }
                 }
 
-                // Si se ha cargado alguna línea, seleccionamos la primera
                 if (lineas.Count > 0)
-                {
                     RecepcionesGrid.SelectedIndex = 0;
-                }
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error al cargar recepción:\n" + ex.Message, "Error",
-                                MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show("Error al cargar recepción:\n" + ex.Message);
             }
         }
 
-        // **********************
-        // 7) Validaciones antes de agregar o modificar una línea
-        // **********************
+        // --------------  AGREGAR LÍNEA  --------------------
         private bool ValidarEntradas()
         {
-            if (string.IsNullOrWhiteSpace(txtReferencia.Text))
-            {
-                MessageBox.Show("Ingresa referencia.", "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return false;
-            }
-            if (!int.TryParse(txtCantidadBuena.Text, out int b) || b < 0)
-            {
-                MessageBox.Show("Cantidad buena inválida.", "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return false;
-            }
-            if (!int.TryParse(txtCantidadMala.Text, out int m) || m < 0)
-            {
-                MessageBox.Show("Cantidad mala inválida.", "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return false;
-            }
-            if (cmbUbicaciones.SelectedItem == null)
-            {
-                MessageBox.Show("Selecciona ubicación.", "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return false;
-            }
-            return true;
+            int dummy;
+            if (string.IsNullOrWhiteSpace(txtReferencia.Text)) return false;
+            if (!int.TryParse(txtCantidadBuena.Text, out dummy)) return false;
+            if (!int.TryParse(txtCantidadMala.Text, out dummy)) return false;
+            return cmbUbicaciones.SelectedItem != null;
         }
 
-        // **********************
-        // 8) “Agregar Línea” – Inserta la línea nueva en RECEPCIONES_LIN, crea Palet y NSERIES si hace falta.
-        // **********************
         private void BtnAgregar_Click(object sender, RoutedEventArgs e)
         {
             if (reciboConfirmado)
             {
-                MessageBox.Show("La recepción ya fue confirmada.", "Información",
-                                MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show("Recepción confirmada: no se puede agregar.");
                 return;
             }
-            if (!ValidarEntradas()) return;
+            if (!ValidarEntradas())
+            {
+                MessageBox.Show("Campos incompletos.");
+                return;
+            }
 
-            string albaran = (cmbAlbaranes.Text ?? "").Trim();
+            string albaran = (cmbAlbaranes.Text ?? string.Empty).Trim();
+            int buenas = int.Parse(txtCantidadBuena.Text);
+            int malas = int.Parse(txtCantidadMala.Text);
+            int total = buenas + malas;
 
             try
             {
-                using (var conn = new SqlConnection(cs))
+                using (SqlConnection conn = new SqlConnection(connectionString))
                 {
                     conn.Open();
-
-                    // 1) Insertar Palet y capturar el ID (INSERTED.PALET)
-                    int total = int.Parse(txtCantidadBuena.Text) + int.Parse(txtCantidadMala.Text);
-                    var cmdP = new SqlCommand(@"
-                        INSERT INTO PALETS(REFERENCIA, CANTIDAD, ALBARAN_RECEPCION, UBICACION, ESTATUS_PALET, F_INSERT)
+                    // Inserta nuevo palet
+                    int nuevoPaletId;
+                    using (SqlCommand cmdP = new SqlCommand(@"
+                        INSERT INTO PALETS
+                          (REFERENCIA,CANTIDAD,ALBARAN_RECEPCION,UBICACION,ESTATUS_PALET,F_INSERT)
                         OUTPUT INSERTED.PALET
-                        VALUES(@r, @c, @a, @u, 1, GETDATE())", conn);
-                    cmdP.Parameters.AddWithValue("@r", txtReferencia.Text.Trim());
-                    cmdP.Parameters.AddWithValue("@c", total);
-                    cmdP.Parameters.AddWithValue("@a", albaran);
-                    cmdP.Parameters.AddWithValue("@u", cmbUbicaciones.SelectedItem.ToString());
-                    int pid = (int)cmdP.ExecuteScalar();
-
-                    // 2) Si el usuario escribió un número de serie, guardarlo en NSERIES_RECEPCIONES
-                    if (!string.IsNullOrWhiteSpace(txtNumeroSerie.Text))
+                        VALUES(@r,@c,@a,@u,0,GETDATE())", conn))
                     {
-                        var cmdN = new SqlCommand(@"
-                            INSERT INTO NSERIES_RECEPCIONES(NUMERO_SERIE, PALET, ALBARAN, F_REGISTRO)
-                            VALUES(@n, @p, @a, GETDATE())", conn);
-                        cmdN.Parameters.AddWithValue("@n", txtNumeroSerie.Text.Trim());
-                        cmdN.Parameters.AddWithValue("@p", pid);
-                        cmdN.Parameters.AddWithValue("@a", albaran);
-                        cmdN.ExecuteNonQuery();
+                        cmdP.Parameters.AddWithValue("@r", txtReferencia.Text.Trim());
+                        cmdP.Parameters.AddWithValue("@c", total);
+                        cmdP.Parameters.AddWithValue("@a", albaran);
+                        cmdP.Parameters.AddWithValue("@u", cmbUbicaciones.SelectedItem.ToString());
+                        nuevoPaletId = (int)cmdP.ExecuteScalar();
                     }
-
-                    // 3) Insertar la propia línea en RECEPCIONES_LIN
-                    var cmdL = new SqlCommand(@"
-                        INSERT INTO RECEPCIONES_LIN(ALBARAN, LINEA, REFERENCIA, CANTIDAD,
-                                                    CANTIDAD_BUENA, CANTIDAD_MALA, UBICACION, NUMERO_SERIE, PALETID)
-                        VALUES(@a, @l, @r, @tot, @b, @m, @u, @n, @p)", conn);
-                    cmdL.Parameters.AddWithValue("@a", albaran);
-                    cmdL.Parameters.AddWithValue("@l", RecepcionesGrid.Items.Count + 1);
-                    cmdL.Parameters.AddWithValue("@r", txtReferencia.Text.Trim());
-                    cmdL.Parameters.AddWithValue("@tot", total);
-                    cmdL.Parameters.AddWithValue("@b", int.Parse(txtCantidadBuena.Text));
-                    cmdL.Parameters.AddWithValue("@m", int.Parse(txtCantidadMala.Text));
-                    cmdL.Parameters.AddWithValue("@u", cmbUbicaciones.SelectedItem.ToString());
-                    cmdL.Parameters.AddWithValue("@n",
-                        string.IsNullOrWhiteSpace(txtNumeroSerie.Text) ? (object)DBNull.Value : txtNumeroSerie.Text.Trim());
-                    cmdL.Parameters.AddWithValue("@p", pid);
-                    cmdL.ExecuteNonQuery();
+                    // Inserta línea
+                    using (SqlCommand cmdL = new SqlCommand(@"
+                        INSERT INTO RECEPCIONES_LIN
+                          (ALBARAN,LINEA,REFERENCIA,CANTIDAD,CANTIDAD_BUENA,CANTIDAD_MALA,
+                           UBICACION,NUMERO_SERIE,PALETID)
+                        VALUES(@a,@l,@r,@t,@b,@m,@u,@n,@p)", conn))
+                    {
+                        cmdL.Parameters.AddWithValue("@a", albaran);
+                        cmdL.Parameters.AddWithValue("@l", lineas.Count + 1);
+                        cmdL.Parameters.AddWithValue("@r", txtReferencia.Text.Trim());
+                        cmdL.Parameters.AddWithValue("@t", total);
+                        cmdL.Parameters.AddWithValue("@b", buenas);
+                        cmdL.Parameters.AddWithValue("@m", malas);
+                        cmdL.Parameters.AddWithValue("@u", cmbUbicaciones.SelectedItem.ToString());
+                        cmdL.Parameters.AddWithValue("@n", string.IsNullOrWhiteSpace(txtNumeroSerie.Text)
+                                                          ? (object)DBNull.Value
+                                                          : txtNumeroSerie.Text.Trim());
+                        cmdL.Parameters.AddWithValue("@p", nuevoPaletId);
+                        cmdL.ExecuteNonQuery();
+                    }
                 }
-
-                // Después de insertar la línea, recargo el DataGrid
                 CargarRecepciones();
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error al agregar línea:\n" + ex.Message, "Error",
-                                MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show("Error al agregar línea:\n" + ex.Message);
             }
         }
 
-        // **********************
-        // 9) “Modificar Línea” – Toma los valores directamente de los TextBoxes y ComboBox
-        // **********************
-        private void BtnModificar_Click(object sender, RoutedEventArgs e)
-        {
-            if (reciboConfirmado)
-            {
-                MessageBox.Show("No se puede modificar después de confirmar la recepción.",
-                                "Recepción Confirmada", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
-
-            if (!(RecepcionesGrid.SelectedItem is RecepcionLinea sel))
-            {
-                MessageBox.Show("Selecciona una línea para modificar o eliminar.",
-                                "Selección Requerida", MessageBoxButton.OK, MessageBoxImage.Information);
-                return;
-            }
-
-            // Validamos que el formulario superior esté bien llenado
-            if (!ValidarEntradas()) return;
-
-            var result = MessageBox.Show(
-                "¿Deseas actualizar esta línea con los nuevos valores?\n\n" +
-                "- Sí: Guardar cambios\n" +
-                "- No: Cancelar modificación",
-                "Modificar Línea",
-                MessageBoxButton.YesNo,
-                MessageBoxImage.Question);
-
-            if (result != MessageBoxResult.Yes)
-                return;
-
-            // Lectura de valores modificados desde los controles
-            string albaran = sel.Albaran;
-            int linea = sel.Linea;
-            int cantidadBuenaMod;
-            int cantidadMalaMod;
-            string numeroSerieMod = txtNumeroSerie.Text.Trim();
-            string ubicacionMod = cmbUbicaciones.SelectedItem?.ToString() ?? "";
-
-            if (!int.TryParse(txtCantidadBuena.Text, out cantidadBuenaMod) || cantidadBuenaMod < 0)
-            {
-                MessageBox.Show("Cantidad buena inválida.", "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
-            if (!int.TryParse(txtCantidadMala.Text, out cantidadMalaMod) || cantidadMalaMod < 0)
-            {
-                MessageBox.Show("Cantidad mala inválida.", "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
-
-            try
-            {
-                using (var conn = new SqlConnection(cs))
-                {
-                    conn.Open();
-
-                    // Actualizar registro en RECEPCIONES_LIN
-                    using (var cmd = new SqlCommand(@"
-                        UPDATE RECEPCIONES_LIN 
-                           SET CANTIDAD_BUENA = @b, 
-                               CANTIDAD_MALA  = @m, 
-                               NUMERO_SERIE   = @n,
-                               UBICACION      = @u
-                         WHERE ALBARAN     = @a 
-                           AND LINEA       = @l", conn))
-                    {
-                        cmd.Parameters.AddWithValue("@b", cantidadBuenaMod);
-                        cmd.Parameters.AddWithValue("@m", cantidadMalaMod);
-                        cmd.Parameters.AddWithValue("@n",
-                            string.IsNullOrWhiteSpace(numeroSerieMod) ? (object)DBNull.Value : numeroSerieMod);
-                        cmd.Parameters.AddWithValue("@u", ubicacionMod);
-                        cmd.Parameters.AddWithValue("@a", albaran);
-                        cmd.Parameters.AddWithValue("@l", linea);
-                        cmd.ExecuteNonQuery();
-                    }
-                }
-
-                MessageBox.Show("Línea modificada exitosamente.", "Éxito",
-                                MessageBoxButton.OK, MessageBoxImage.Information);
-
-                // Después de guardar, recargo las líneas para reflejar cambios en pantalla
-                CargarRecepciones();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Error al modificar línea:\n" + ex.Message, "Error",
-                                MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-        }
-
-        // **********************
-        // 10) “Referencia Desconocida” – Crea una referencia nueva genérica en la tabla REFERENCIAS
-        // **********************
-        private void BtnNuevaRef_Click(object sender, RoutedEventArgs e)
-        {
-            if (reciboConfirmado)
-            {
-                MessageBox.Show("La recepción ya fue confirmada.", "Información",
-                                MessageBoxButton.OK, MessageBoxImage.Information);
-                return;
-            }
-
-            string nuevaRef = "REF-" + Guid.NewGuid().ToString("N").Substring(0, 8);
-
-            try
-            {
-                using (var conn = new SqlConnection(cs))
-                {
-                    conn.Open();
-                    var ins = new SqlCommand(@"
-                        INSERT INTO REFERENCIAS(REFERENCIA, DES_REFERENCIA, PRECIO,
-                                                LLEVA_N_SERIES, ESTA_HABILITADA)
-                        VALUES(@r, @d, 0, 0, 1)", conn);
-                    ins.Parameters.AddWithValue("@r", nuevaRef);
-                    ins.Parameters.AddWithValue("@d", "Desconocida");
-                    ins.ExecuteNonQuery();
-                }
-
-                MessageBox.Show("Referencia creada: " + nuevaRef, "Éxito",
-                                MessageBoxButton.OK, MessageBoxImage.Information);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Error al crear referencia:\n" + ex.Message, "Error",
-                                MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-        }
-
-        // **********************
-        // 11) “Confirmar Recepción” – Llama al SP para fijar ESTATUS_RECEPCION = 3, actualiza pallets y envía un correo SMTP
-        // **********************
+        // --------------  CONFIRMAR RECEPCION  --------------------
         private void BtnConfirmar_Click(object sender, RoutedEventArgs e)
         {
-            if (reciboConfirmado)
+            if (!lineas.Any())
             {
-                MessageBox.Show("La recepción ya fue confirmada.", "Información",
-                                MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show("No hay líneas para confirmar.");
                 return;
             }
-            if (lineas.Count == 0)
-            {
-                MessageBox.Show("No hay líneas para confirmar.", "Error",
-                                MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
-            if (MessageBox.Show("¿Confirmar recepción completa?", "Confirmar",
-                                MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
-                return;
 
-            string albaran = (cmbAlbaranes.Text ?? "").Trim();
-
+            string albaran = (cmbAlbaranes.Text ?? string.Empty).Trim();
             try
             {
-                using (var conn = new SqlConnection(cs))
+                using (SqlConnection conn = new SqlConnection(connectionString))
                 {
                     conn.Open();
-
-                    // SP que marca ESTATUS_RECEPCION = 3 en RECEPCIONES_CAB
-                    var cmd1 = new SqlCommand("PA_CONFIRMAR_RECEPCION", conn)
+                    using (var tx = conn.BeginTransaction())
                     {
-                        CommandType = System.Data.CommandType.StoredProcedure
-                    };
-                    cmd1.Parameters.AddWithValue("@Albaran", albaran);
-                    cmd1.Parameters.AddWithValue("@FechaConfirmacion", DateTime.Now);
-                    cmd1.ExecuteNonQuery();
-
-                    // Actualizar pallets de ese albarán (por ejemplo, ESTATUS_PALET = 2)
-                    var cmdPalets = new SqlCommand(@"
-                        UPDATE PALETS
-                           SET ESTATUS_PALET = 2
-                         WHERE ALBARAN_RECEPCION = @a", conn);
-                    cmdPalets.Parameters.AddWithValue("@a", albaran);
-                    cmdPalets.ExecuteNonQuery();
+                        // ÚNICA llamada al SP que ajusta INVENTARIO internamente
+                        using (SqlCommand cmd = new SqlCommand("PA_CONFIRMAR_RECEPCION", conn, tx))
+                        {
+                            cmd.CommandType = CommandType.StoredProcedure;
+                            cmd.Parameters.AddWithValue("@Albaran", albaran);
+                            cmd.Parameters.AddWithValue("@FechaConfirmacion", DateTime.Now);
+                            int filas = cmd.ExecuteNonQuery();
+                            if (filas == 0)
+                                throw new Exception("No se confirmó la recepción: verifica el albarán.");
+                        }
+                        tx.Commit();
+                    }
                 }
 
-                reciboConfirmado = true;
-                MessageBox.Show("Recepción confirmada y pallets actualizados.", "Éxito",
-                                MessageBoxButton.OK, MessageBoxImage.Information);
+                // Envío de correo
+                EnviarCorreoSMTP(
+                    "destino@example.com",
+                    "Recepción confirmada",
+                    "La recepción " + albaran + " ha sido confirmada correctamente.");
 
-                // ——————————————————————————
-                // Enviar correo SMTP notificando la confirmación
-                // ——————————————————————————
-                string asunto = $"Recepción Confirmada: {albaran}";
-                string cuerpo = $"La recepción con albarán <b>{albaran}</b> " +
-                                $"fue confirmada correctamente el {DateTime.Now:dd/MM/yyyy HH:mm:ss}.";
-                EnviarCorreoSMTP("saidjniah@gmail.com", asunto, cuerpo);
+                MessageBox.Show("Recepción confirmada.");
+                reciboConfirmado = true;
+                // Refresca Palets si está abierta
+                foreach (Window w in Application.Current.Windows)
+                    if (w is Palets p) { p.CargarPalets(); p.Activate(); }
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error al confirmar recepción:\n" + ex.Message, "Error",
-                                MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show("ERROR al confirmar recepción:\n" + ex.Message);
             }
         }
 
-        // **********************
-        // 12) “Volver” – Regresa al menú principal sin cerrar la app
-        // **********************
+        // --------------  SMTP --------------------
+        private void EnviarCorreoSMTP(string toEmail, string subject, string body)
+        {
+            try
+            {
+                using (SmtpClient client = new SmtpClient("smtp.gmail.com", 587))
+                {
+                    client.EnableSsl = true;
+                    client.Credentials =
+                        new NetworkCredential("dheko22@gmail.com", "fwvtauvwjmucnthd");
+                    using (MailMessage mail = new MailMessage())
+                    {
+                        mail.From = new MailAddress("dheko22@gmail.com", "Notificaciones ICP");
+                        mail.To.Add(toEmail);
+                        mail.Subject = subject;
+                        mail.Body = body;
+                        mail.IsBodyHtml = false;
+                        client.Send(mail);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("No se pudo enviar correo:\n" + ex.Message);
+            }
+        }
+
         private void BtnVolver_Click(object sender, RoutedEventArgs e)
         {
             new MenuPrincipal().Show();
-            this.Close();
+            Close();
         }
 
-        // **********************
-        // 13) on SelectionChanged en el DataGrid de líneas: 
-        //     Rellena los TextBox y ComboBox con los valores de la línea seleccionada
-        // **********************
+        // ----------------  SELECCIÓN EN GRID ----------------
         private void RecepcionesGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (RecepcionesGrid.SelectedItem is RecepcionLinea sel)
@@ -575,9 +374,9 @@ namespace ICP.Negocio
                 txtCantidadBuena.Text = sel.CantidadBuena.ToString();
                 txtCantidadMala.Text = sel.CantidadMala.ToString();
                 txtNumeroSerie.Text = sel.NumeroSerie;
-
-                if (!string.IsNullOrWhiteSpace(sel.Ubicacion)
-                    && cmbUbicaciones.Items.Contains(sel.Ubicacion))
+                // Ubicación
+                if (!string.IsNullOrWhiteSpace(sel.Ubicacion) &&
+                    cmbUbicaciones.Items.Contains(sel.Ubicacion))
                 {
                     cmbUbicaciones.SelectedItem = sel.Ubicacion;
                 }
@@ -588,74 +387,129 @@ namespace ICP.Negocio
             }
         }
 
-
-        // ****************************************
-        // MÉTODO AUXILIAR: ENVÍO DE CORREO SMTP
-        // ****************************************
-        private void EnviarCorreoSMTP(string toEmail, string subject, string body)
-        {
-            try
-            {
-                // ——————————————————————————————————————
-                // 1) Configuración del cliente SMTP (Gmail)
-                // ——————————————————————————————————————
-                var smtpHost = "smtp.gmail.com";
-                var smtpPort = 587;
-                var smtpUser = "dheko22@gmail.com";           // <-- TU cuenta real de Gmail
-                var smtpPass = "htdgeqewwcxcpwci";                // <-- TU App Password DE 16 caracteres
-
-                using (var client = new SmtpClient(smtpHost, smtpPort))
-                {
-                    client.EnableSsl = true;
-                    client.Credentials = new NetworkCredential(smtpUser, smtpPass);
-
-                    // ——————————————————————————
-                    // 2) Construimos el mensaje
-                    // ——————————————————————————
-                    var mail = new MailMessage();
-                    mail.From = new MailAddress(smtpUser, "Notificaciones ICP");
-                    mail.To.Add(toEmail);
-                    mail.Subject = subject;
-                    mail.Body = body;
-                    mail.IsBodyHtml = true;  // Permitir HTML en el cuerpo
-
-                    // ——————————————————————————
-                    // 3) Envío
-                    // ——————————————————————————
-                    client.Send(mail);
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(
-                    $"Error enviando correo SMTP:\n{ex.Message}",
-                    "Error al enviar correo",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error);
-            }
-        }
+        // ----------------  MODIFICAR LÍNEA ----------------
+        private void BtnModificar_Click(object sender, RoutedEventArgs e)
+{
+    // 1) Comprobaciones iniciales
+    if (reciboConfirmado)
+    {
+        MessageBox.Show("La recepción ya fue confirmada; no se puede modificar.",
+                        "Recepción confirmada", MessageBoxButton.OK, MessageBoxImage.Warning);
+        return;
+    }
+    if (!(RecepcionesGrid.SelectedItem is RecepcionLinea sel))
+    {
+        MessageBox.Show("Selecciona una línea para modificar.",
+                        "Selección requerida", MessageBoxButton.OK, MessageBoxImage.Information);
+        return;
+    }
+    if (!ValidarEntradas())
+    {
+        MessageBox.Show("Campos incompletos.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+        return;
     }
 
-    // **********************
-    // Clase que representa cada fila de RECEPCIONES_LIN en el DataGrid.
-    // Incluye la propiedad Descripcion para mostrar DES_REFERENCIA y 
-    // notifica cambios si editas CantidadBuena/CantidadMala (INotifyPropertyChanged).
-    // **********************
-    public class RecepcionLinea : INotifyPropertyChanged
-    {
-        public string Albaran { get; set; }
-        public int Linea { get; set; }
-        public string Referencia { get; set; }
-        public string Descripcion { get; set; }    // Muestra DES_REFERENCIA
-        public int CantidadBuena { get; set; }
-        public int CantidadMala { get; set; }
-        public string NumeroSerie { get; set; }
-        public string Ubicacion { get; set; }
-        public int PaletId { get; set; }
-        public int EstatusPalet { get; set; }
+    // 2) Leer valores de los controles
+    int cantBuena = int.Parse(txtCantidadBuena.Text);
+    int cantMala  = int.Parse(txtCantidadMala.Text);
+    int total     = cantBuena + cantMala;
+    string numSerie = string.IsNullOrWhiteSpace(txtNumeroSerie.Text)
+                       ? null
+                       : txtNumeroSerie.Text.Trim();
+    string ubi = cmbUbicaciones.SelectedItem?.ToString() ?? string.Empty;
+    string albaran = sel.Albaran;
+    int linea = sel.Linea;
 
-        public event PropertyChangedEventHandler PropertyChanged;
-        protected void OnPropertyChanged(string n) =>
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(n));
+    // 3) Confirmación del usuario
+    if (MessageBox.Show("¿Guardar los cambios y asignar nuevo palet?",
+                        "Confirmar modificación",
+                        MessageBoxButton.YesNo,
+                        MessageBoxImage.Question) != MessageBoxResult.Yes)
+    {
+        return;
+    }
+
+    try
+    {
+        using (var conn = new SqlConnection(connectionString))
+        {
+            conn.Open();
+            using (var tx = conn.BeginTransaction())
+            {
+                // 4) Insertar nuevo palet
+                int nuevoPaletId;
+                using (var cmdP = new SqlCommand(@"
+                    INSERT INTO PALETS
+                      (REFERENCIA, CANTIDAD, ALBARAN_RECEPCION, UBICACION, ESTATUS_PALET, F_INSERT)
+                    OUTPUT INSERTED.PALET
+                    VALUES(@r,@c,@a,@u,0,GETDATE())", conn, tx))
+                {
+                    cmdP.Parameters.AddWithValue("@r", sel.Referencia);
+                    cmdP.Parameters.AddWithValue("@c", total);
+                    cmdP.Parameters.AddWithValue("@a", albaran);
+                    cmdP.Parameters.AddWithValue("@u", ubi);
+                    nuevoPaletId = (int)cmdP.ExecuteScalar();
+                }
+
+                // 5) Actualizar línea para apuntar al nuevo palet
+                using (var cmdL = new SqlCommand(@"
+                    UPDATE RECEPCIONES_LIN
+                       SET CANTIDAD_BUENA = @b,
+                           CANTIDAD_MALA  = @m,
+                           CANTIDAD       = @t,
+                           NUMERO_SERIE   = @n,
+                           UBICACION      = @u,
+                           PALETID        = @p
+                     WHERE ALBARAN = @a
+                       AND LINEA   = @l", conn, tx))
+                {
+                    cmdL.Parameters.AddWithValue("@b", cantBuena);
+                    cmdL.Parameters.AddWithValue("@m", cantMala);
+                    cmdL.Parameters.AddWithValue("@t", total);
+                    cmdL.Parameters.AddWithValue("@n", (object)numSerie ?? DBNull.Value);
+                    cmdL.Parameters.AddWithValue("@u", ubi);
+                    cmdL.Parameters.AddWithValue("@p", nuevoPaletId);
+                    cmdL.Parameters.AddWithValue("@a", albaran);
+                    cmdL.Parameters.AddWithValue("@l", linea);
+
+                    int filas = cmdL.ExecuteNonQuery();
+                    if (filas == 0)
+                        throw new Exception("No se encontró la línea en la base de datos.");
+                }
+
+                tx.Commit();
+            }
+        }
+
+        // 6) Notificar y refrescar
+        MessageBox.Show("Línea modificada y asignada a nuevo palet correctamente.",
+                        "Éxito", MessageBoxButton.OK, MessageBoxImage.Information);
+        CargarRecepciones();
+    }
+    catch (Exception ex)
+    {
+        MessageBox.Show("Error al modificar y asignar palet:\n" + ex.Message,
+                        "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+    }
+}
+
+
+        // --------------  DTO --------------------
+        public class RecepcionLinea : INotifyPropertyChanged
+        {
+            public string Albaran { get; set; }
+            public int Linea { get; set; }
+            public string Referencia { get; set; }
+            public string Descripcion { get; set; }
+            public int CantidadBuena { get; set; }
+            public int CantidadMala { get; set; }
+            public string NumeroSerie { get; set; }
+            public string Ubicacion { get; set; }
+            public int PaletId { get; set; }
+            public int EstatusPalet { get; set; }
+            public event PropertyChangedEventHandler PropertyChanged;
+            protected void OnPropertyChanged(string p) =>
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(p));
+        }
     }
 }

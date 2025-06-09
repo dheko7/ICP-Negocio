@@ -1,15 +1,13 @@
 ﻿<Window x:Class="ICP.Negocio.Revision"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:local="clr-namespace:ICP.Negocio"
         Title="Revisión de Pedidos"
         Height="650" Width="900"
         WindowStartupLocation="CenterScreen"
         Background="#F9FAFB">
 
     <Window.Resources>
-        <local:NotConverter x:Key="NotConverter"/>
-
+        <!-- Estilo común para botones -->
         <Style TargetType="Button">
             <Setter Property="Background" Value="#007ACC"/>
             <Setter Property="Foreground" Value="White"/>
@@ -37,7 +35,8 @@
             </Setter>
         </Style>
 
-        <Style TargetType="DataGrid" x:Key="GridStyle">
+        <!-- Estilo para DataGrids -->
+        <Style x:Key="GridStyle" TargetType="DataGrid">
             <Setter Property="AlternatingRowBackground" Value="#EFEFEF"/>
             <Setter Property="RowBackground" Value="White"/>
             <Setter Property="BorderBrush" Value="#CCC"/>
@@ -45,7 +44,8 @@
             <Setter Property="GridLinesVisibility" Value="None"/>
         </Style>
 
-        <Style TargetType="DataGridRow" x:Key="LineaRowStyle">
+        <!-- Fila de línea confirmada -->
+        <Style x:Key="LineaRowStyle" TargetType="DataGridRow">
             <Setter Property="Background" Value="White"/>
             <Style.Triggers>
                 <DataTrigger Binding="{Binding Confirmado}" Value="True">
@@ -64,12 +64,12 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <TextBlock Text="Revisión de Pedidos: Confirmación Línea a Línea"
+        <TextBlock Text="Revisión de Pedidos"
                FontSize="16" FontWeight="Bold"
                Grid.Row="0" Margin="0,0,0,10"/>
 
-        <!-- Pedidos en estado 2 y 3 -->
-        <GroupBox Header="Pedidos (Picking / Enviado)" Grid.Row="1" Margin="0,0,0,10">
+        <!-- Pedidos en Proceso(2) o Ejecutado(3) -->
+        <GroupBox Header="Pedidos (En Proceso / Ejecutado)" Grid.Row="1" Margin="0,0,0,10">
             <DataGrid x:Name="dgPedidos"
                 AutoGenerateColumns="False"
                 CanUserAddRows="False"
@@ -77,12 +77,24 @@
                 SelectionMode="Single"
                 Style="{StaticResource GridStyle}"
                 SelectionChanged="DgPedidos_SelectionChanged">
+                <DataGrid.RowStyle>
+                    <Style TargetType="DataGridRow">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding Estatus}" Value="2">
+                                <Setter Property="Background" Value="LightYellow"/>
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding Estatus}" Value="3">
+                                <Setter Property="Background" Value="LightGreen"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </DataGrid.RowStyle>
                 <DataGrid.Columns>
-                    <DataGridTextColumn Header="Petición"   Binding="{Binding Peticion}"      Width="100"/>
-                    <DataGridTextColumn Header="Fecha"      Binding="{Binding Fecha, StringFormat={}{0:dd/MM/yyyy}}" Width="120"/>
-                    <DataGridTextColumn Header="Cliente"    Binding="{Binding CodigoCliente}" Width="150"/>
-                    <DataGridTextColumn Header="Líneas"     Binding="{Binding TotalLineas}"   Width="80"/>
-                    <DataGridTextColumn Header="Estado"     Binding="{Binding EstadoNombre}"  Width="120"/>
+                    <DataGridTextColumn Header="Petición"    Binding="{Binding Peticion}" Width="100"/>
+                    <DataGridTextColumn Header="Fecha"       Binding="{Binding Fecha, StringFormat={}{0:dd/MM/yyyy}}" Width="120"/>
+                    <DataGridTextColumn Header="Cliente"     Binding="{Binding CodigoCliente}" Width="150"/>
+                    <DataGridTextColumn Header="Líneas"      Binding="{Binding TotalLineas}" Width="80"/>
+                    <DataGridTextColumn Header="Estado"      Binding="{Binding EstadoNombre}" Width="120"/>
                 </DataGrid.Columns>
             </DataGrid>
         </GroupBox>
@@ -91,6 +103,7 @@
                FontSize="14" FontWeight="SemiBold"
                Grid.Row="2" Margin="0,10,0,5"/>
 
+        <!-- Detalle de líneas -->
         <GroupBox Grid.Row="3" Margin="0,0,0,10">
             <DataGrid x:Name="dgLineas"
                 AutoGenerateColumns="False"
@@ -98,16 +111,25 @@
                 Style="{StaticResource GridStyle}"
                 RowStyle="{StaticResource LineaRowStyle}">
                 <DataGrid.Columns>
-                    <DataGridTextColumn Header="Línea"      Binding="{Binding Linea}"      Width="60"/>
-                    <DataGridTextColumn Header="Referencia" Binding="{Binding Referencia}" Width="150"/>
-                    <DataGridTextColumn Header="Solicitada" Binding="{Binding Cantidad}"   Width="100"/>
-                    <DataGridTextColumn Header="Picada"     Binding="{Binding Picada}"     Width="100"/>
+                    <DataGridTextColumn Header="Línea"       Binding="{Binding Linea}" Width="60"/>
+                    <DataGridTextColumn Header="Referencia"  Binding="{Binding Referencia}" Width="150"/>
+                    <DataGridTextColumn Header="Solicitada"  Binding="{Binding Cantidad}" Width="100"/>
+                    <DataGridTextColumn Header="Picada"      Binding="{Binding Picada}" Width="100"/>
                     <DataGridTemplateColumn Header="Acción" Width="100">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <Button Content="Confirmar"
-                        Click="BtnConfirmarLinea_Click"
-                        IsEnabled="{Binding Confirmado, Converter={StaticResource NotConverter}}"/>
+                        Click="BtnConfirmarLinea_Click">
+                                    <Button.Style>
+                                        <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding Confirmado}" Value="True">
+                                                    <Setter Property="IsEnabled" Value="False"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Button.Style>
+                                </Button>
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
